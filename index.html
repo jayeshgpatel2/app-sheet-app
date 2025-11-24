@@ -35,9 +35,6 @@
       font-size: 11px;
       font-weight: 600;
     }
-    .loading {
-      background: #3b82f6;
-    }
     main {
       padding: 16px;
       max-width: 1300px;
@@ -181,32 +178,6 @@
       color: #6b7280;
       margin-top: 2px;
     }
-    .error-msg {
-      background: #fee2e2;
-      color: #991b1b;
-      padding: 12px;
-      border-radius: 8px;
-      margin-bottom: 12px;
-      font-size: 13px;
-    }
-    .refresh-btn {
-      background: #3b82f6;
-      color: white;
-      border: none;
-      padding: 8px 16px;
-      border-radius: 6px;
-      font-size: 12px;
-      cursor: pointer;
-      font-weight: 500;
-    }
-    .refresh-btn:hover {
-      background: #2563eb;
-    }
-    .last-updated {
-      font-size: 11px;
-      color: #6b7280;
-      margin-top: 8px;
-    }
     @media (max-width: 768px) {
       header { padding: 10px 12px; }
       main { padding: 10px; }
@@ -219,12 +190,10 @@
 <body>
 <header>
   <h1>InArt Stock Dashboard</h1>
-  <span class="badge" id="statusBadge">Loading...</span>
+  <span class="badge">Live · Auto-Updated</span>
 </header>
 
 <main>
-  <div id="errorContainer"></div>
-
   <section class="summary">
     <div class="card">
       <div class="card-title">Total SKUs</div>
@@ -240,13 +209,6 @@
       <div class="card-title">Best Seller (Qty)</div>
       <div class="card-value" id="statBestSeller">–</div>
       <div class="card-sub" id="statBestSellerQty">–</div>
-    </div>
-    <div class="card">
-      <div class="card-title">Data Status</div>
-      <div class="card-value">
-        <button class="refresh-btn" onclick="loadData()">🔄 Refresh</button>
-      </div>
-      <div class="card-sub last-updated" id="lastUpdated">Never</div>
     </div>
   </section>
 
@@ -289,7 +251,7 @@
       </tr>
       </thead>
       <tbody id="tableBody">
-      <tr><td colspan="9" style="text-align:center;padding:20px;">Loading data...</td></tr>
+      <tr><td colspan="9" style="text-align:center;padding:20px;color:#6b7280;">Loading data...</td></tr>
       </tbody>
     </table>
   </section>
@@ -304,39 +266,7 @@
   const PURCHASES_CSV =
     "https://docs.google.com/spreadsheets/d/e/2PACX-1vTigsGhlpnrwXI_q8RklVhfc7cD8dezLyLS9fXHN842Tk6dM430UVo5UTMjFKV08P3f0pKNtsadi-t3/pub?gid=1808784762&single=true&output=csv";
 
-  // 🔧 IMAGE FIX: Configure your image base URL
-  // Option 1: If using AppSheet image service
-  const APPSHEET_APP_ID = "YOUR_APP_ID_HERE"; // Replace with your actual AppSheet App ID
-  const USE_APPSHEET_IMAGES = false; // Set to true if using AppSheet
-
-  // Option 2: If hosting images on Google Drive or another server
-  const IMAGE_BASE_URL = "https://your-image-server.com/"; // Replace with your actual base URL
-  const USE_CUSTOM_BASE_URL = false; // Set to true if using custom base URL
-
-  // Function to convert AppSheet image path to actual URL
-  function getImageUrl(imagePath) {
-    if (!imagePath) return "";
-    
-    // If already a full URL, return it
-    if (imagePath.startsWith("http://") || imagePath.startsWith("https://")) {
-      return imagePath;
-    }
-    
-    // If using AppSheet image service
-    if (USE_APPSHEET_IMAGES && APPSHEET_APP_ID) {
-      return `https://www.appsheet.com/template/gettablefileurl?appName=${APPSHEET_APP_ID}&tableName=Product&fileName=${encodeURIComponent(imagePath)}`;
-    }
-    
-    // If using custom base URL
-    if (USE_CUSTOM_BASE_URL && IMAGE_BASE_URL) {
-      return IMAGE_BASE_URL + imagePath;
-    }
-    
-    // Return empty if no configuration is set
-    return "";
-  }
-
-  // Simple CSV parser (handles quotes and commas properly)
+  // Simple CSV parser
   function parseCSV(text) {
     const lines = text.trim().split(/\r?\n/);
     return lines.map(line => {
@@ -364,7 +294,7 @@
 
   async function fetchCSV(url) {
     const res = await fetch(url);
-    if (!res.ok) throw new Error(`Failed to fetch ${url} (Status: ${res.status})`);
+    if (!res.ok) throw new Error("Failed to fetch " + url);
     const txt = await res.text();
     return parseCSV(txt);
   }
@@ -383,25 +313,7 @@
     viewMode: "all"
   };
 
-  function showError(message) {
-    const container = document.getElementById("errorContainer");
-    container.innerHTML = `<div class="error-msg">⚠️ ${message}</div>`;
-  }
-
-  function clearError() {
-    document.getElementById("errorContainer").innerHTML = "";
-  }
-
-  function updateStatus(message, isLoading = false) {
-    const badge = document.getElementById("statusBadge");
-    badge.textContent = message;
-    badge.className = isLoading ? "badge loading" : "badge";
-  }
-
   async function loadData() {
-    updateStatus("Loading...", true);
-    clearError();
-    
     try {
       const [prodRows, salesRows, purchaseRows] = await Promise.all([
         fetchCSV(PRODUCT_CSV),
@@ -420,19 +332,23 @@
       // Build products
       for (let i = 1; i < prodRows.length; i++) {
         const r = prodRows[i];
-        if (!r.length || r.every(cell => !cell)) continue; // Skip empty rows
+        if (!r.length || r.every(cell => !cell)) continue;
         
         const barcode = r[prodHeader["Product Barcode"]] || "";
         if (!barcode) continue;
         
-        const imagePath = r[prodHeader["Image"]] || r[prodHeader["AMAZON IMAGE"]] || "";
+        // 🔧 KEY CHANGE: Look for "Image_URL" column first (from Apps Script)
+        // Falls back to old columns if Image_URL doesn't exist yet
+        const imageUrl = r[prodHeader["Image_URL"]] 
+                      || r[prodHeader["Image"]] 
+                      || r[prodHeader["AMAZON IMAGE"]] 
+                      || "";
         
         const p = {
           barcode,
           name: r[prodHeader["Product"]] || "",
           category: r[prodHeader["Category"]] || "",
-          imageRaw: imagePath, // Store raw path for debugging
-          image: getImageUrl(imagePath), // Convert to actual URL
+          image: imageUrl, // Direct URL from Drive
           initialStock: Number(r[prodHeader["Initial Stock"]] || 0),
           restockLevel: Number(r[prodHeader["Restock Level"]] || 0),
           cost: r[prodHeader["Cost"]] || "",
@@ -486,14 +402,9 @@
       updateSummary();
       renderTable();
       
-      updateStatus("Live · Updated", false);
-      document.getElementById("lastUpdated").textContent = 
-        "Last updated: " + new Date().toLocaleString();
-      
     } catch (err) {
       console.error("Load error:", err);
-      showError(`Failed to load data: ${err.message}. Please check your internet connection and try again.`);
-      updateStatus("Error", false);
+      alert("Error loading data: " + err.message);
     }
   }
 
@@ -508,7 +419,6 @@
     const categoryFilter = document.getElementById("categoryFilter");
     const vendorFilter = document.getElementById("vendorFilter");
 
-    // Clear existing options (except first one)
     categoryFilter.innerHTML = '<option value="">All categories</option>';
     vendorFilter.innerHTML = '<option value="">All vendors</option>';
 
@@ -545,8 +455,9 @@
       lowStockCount + " low / below restock";
 
     if (best && best.sales > 0) {
+      const name = best.name || best.barcode;
       document.getElementById("statBestSeller").textContent = 
-        (best.name || best.barcode).substring(0, 30) + (best.name?.length > 30 ? "..." : "");
+        name.length > 30 ? name.substring(0, 30) + "..." : name;
       document.getElementById("statBestSellerQty").textContent =
         best.sales.toLocaleString() + " units sold";
     } else {
@@ -563,7 +474,6 @@
 
     let list = state.productsList.slice();
 
-    // View mode filtering
     if (state.viewMode === "low") {
       list = list.filter(p => p.currentStock <= p.restockLevel && p.currentStock > 0);
     } else if (state.viewMode === "zero") {
@@ -592,7 +502,6 @@
       });
     }
 
-    // Sorting
     if (sortMode === "name") {
       list.sort((a, b) => (a.name || a.barcode).localeCompare(b.name || b.barcode));
     } else if (sortMode === "stockDesc") {
@@ -613,7 +522,7 @@
 
     if (list.length === 0) {
       const tr = document.createElement("tr");
-      tr.innerHTML = '<td colspan="9" style="text-align:center;padding:20px;color:#6b7280;">No products found matching your filters.</td>';
+      tr.innerHTML = '<td colspan="9" style="text-align:center;padding:20px;color:#6b7280;">No products found.</td>';
       tbody.appendChild(tr);
       return;
     }
@@ -621,14 +530,13 @@
     list.forEach(p => {
       const tr = document.createElement("tr");
 
-      // Image cell
+      // Image
       const tdImg = document.createElement("td");
       tdImg.className = "img-cell";
-      if (p.image) {
+      if (p.image && p.image.startsWith("http")) {
         const img = document.createElement("img");
         img.src = p.image;
         img.alt = p.name || p.barcode;
-        // Handle image load errors
         img.onerror = function() {
           this.style.display = 'none';
           const noImg = document.createElement("div");
@@ -645,7 +553,7 @@
       }
       tr.appendChild(tdImg);
 
-      // Product name
+      // Product
       const tdName = document.createElement("td");
       tdName.innerHTML = `<div><strong>${p.name || "-"}</strong></div>
         <div class="subtext">${p.category || ""}</div>`;
@@ -709,9 +617,7 @@
   document.addEventListener("DOMContentLoaded", () => {
     loadData();
 
-    document.getElementById("searchInput").addEventListener("input", () => {
-      renderTable();
-    });
+    document.getElementById("searchInput").addEventListener("input", renderTable);
     document.getElementById("categoryFilter").addEventListener("change", renderTable);
     document.getElementById("vendorFilter").addEventListener("change", renderTable);
     document.getElementById("sortMode").addEventListener("change", renderTable);
