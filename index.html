@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8" />
-    <title>InArt Stock Dashboard (Optimized)</title>
+    <title>InArt Stock Dashboard (Advanced)</title>
     <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
     <style>
@@ -69,9 +69,9 @@
             margin: 0 auto;
         }
 
-        /* SUMMARY CARDS (Hidden on Mobile) */
+        /* SUMMARY CARDS */
         .summary-grid {
-            display: none; /* Hide on mobile by default */
+            display: grid;
             grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
             gap: 10px;
             margin-bottom: 15px;
@@ -149,6 +149,9 @@
             transition: all 0.2s;
             color: var(--color-text-base);
         }
+        .pill:hover {
+            border-color: var(--color-primary);
+        }
         .pill.active {
             background: var(--color-primary);
             color: var(--color-surface);
@@ -166,30 +169,23 @@
             gap: 8px;
         }
         .product-item {
-            display: grid;
-            /* Layout for Mobile: Image | Details | Stock/Edit */
-            grid-template-columns: 60px 1fr auto;
+            display: flex;
             align-items: center;
             background: white;
             padding: 10px;
             border-radius: 10px;
             box-shadow: var(--shadow-sm);
         }
-        .product-img-container {
+        .product-img {
             width: 50px;
             height: 50px;
-            grid-column: 1;
-            margin-right: 10px;
-        }
-        .product-img {
-            max-width: 50px;
-            max-height: 50px;
+            flex-shrink: 0;
             border-radius: 6px;
             object-fit: cover;
+            margin-right: 10px;
             border: 1px solid #e5e7eb;
-            display: block;
         }
-        .product-img-container .no-img {
+        .product-img .no-img {
             width: 100%;
             height: 100%;
             display: flex;
@@ -200,10 +196,9 @@
             background: #f3f4f6;
             border-radius: 6px;
         }
-        .product-details-mobile {
-            grid-column: 2;
+        .product-details {
+            flex-grow: 1;
             min-width: 0;
-            padding-right: 10px;
         }
         .product-sku {
             font-weight: 600;
@@ -212,19 +207,21 @@
             white-space: nowrap;
             text-overflow: ellipsis;
         }
-        .product-subtext-mobile {
+        .product-name {
             font-size: 12px;
             color: var(--color-text-muted);
-            line-height: 1.3;
+            overflow: hidden;
+            white-space: nowrap;
+            text-overflow: ellipsis;
         }
-        .product-stock-edit-mobile {
-            grid-column: 3;
+        .product-stock-price {
             text-align: right;
             flex-shrink: 0;
-            display: flex;
-            flex-direction: column;
-            align-items: flex-end;
-            gap: 4px;
+            margin-left: 10px;
+        }
+        .product-price {
+            font-weight: 600;
+            font-size: 16px;
         }
         .product-stock-badge {
             font-size: 12px;
@@ -232,14 +229,6 @@
             display: inline-block;
             padding: 2px 8px;
             border-radius: 999px;
-        }
-        .mobile-edit-btn {
-            border: none; 
-            background:none; 
-            color:var(--color-text-muted); 
-            font-size:18px; 
-            padding: 4px;
-            cursor: pointer;
         }
 
         /* STOCK BADGE COLORS */
@@ -272,7 +261,7 @@
         }
         th {
             position: sticky;
-            top: 50px; 
+            top: 50px; /* Below the app bar */
             z-index: 50;
             font-weight: 600;
         }
@@ -283,20 +272,48 @@
             font-size: 11px;
             color: var(--color-text-muted);
         }
-        
-        /* LAZY LOAD STYLES */
-        .loading-placeholder {
-            text-align:center;
-            padding:20px;
-            color:var(--color-text-muted);
-            font-size: 14px;
+
+        /* FLOATING ACTION BUTTONS (FAB) */
+        .fab-group {
+            position: fixed;
+            right: 16px;
+            bottom: 60px; /* Above the bottom nav (if it were present) */
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            align-items: flex-end;
+            z-index: 200;
+        }
+        .fab-button {
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            background: white;
+            color: var(--color-primary);
+            border: none;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+            font-size: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .fab-button.main {
+            width: 55px;
+            height: 55px;
+            background: var(--color-success);
+            color: white;
+            font-size: 26px;
+        }
+        .fab-button:hover {
+            transform: scale(1.05);
         }
 
         /* MEDIA QUERY FOR DESKTOP */
         @media (min-width: 768px) {
             .app-bar { padding: 12px 20px; }
             main { padding: 20px; }
-            .summary-grid { display: grid; } /* Show summary on desktop */
             .product-list { display: none; } /* Hide mobile list on desktop */
             .desktop-table { display: block; } /* Show desktop table */
             .controls { display: flex; }
@@ -362,33 +379,33 @@
     </section>
 
     <ul class="product-list" id="mobileList">
-        <li><div class="loading-placeholder">Loading data...</div></li>
+        <li><div style="text-align:center;padding:20px;color:var(--color-text-muted);">Loading data...</div></li>
     </ul>
 
     <section class="desktop-table">
         <table>
             <thead>
             <tr>
-                <th style="width: 25%;">Product</th>
-                <th style="width: 12%;">Barcode</th>
-                <th style="width: 15%;">Category / Vendor</th>
-                <th style="width: 15%;">ASIN / SKU</th>
-                <th style="width: 8%;">Cost</th>
-                <th style="width: 8%;">Stock</th>
-                <th style="width: 8%;">Purchases</th>
-                <th style="width: 9%;">Sales</th>
+                <th>Product</th>
+                <th>Barcode</th>
+                <th>Category / Vendor</th>
+                <th>ASIN / SKU</th>
+                <th>Cost</th>
+                <th>Stock</th>
+                <th>Purchases</th>
+                <th>Sales</th>
             </tr>
             </thead>
             <tbody id="tableBody">
-            <tr><td colspan="8" class="loading-placeholder">Loading data...</td></tr>
+            <tr><td colspan="8" style="text-align:center;padding:20px;color:var(--color-text-muted);">Loading data...</td></tr>
             </tbody>
         </table>
     </section>
 </main>
 
 <div class="fab-group">
-    <button class="fab-button" aria-label="Download/Filter" style="width: 45px; height: 45px; border-radius: 50%; background: white; color: var(--color-primary); border: none; box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2); font-size: 20px; display: flex; align-items: center; justify-content: center; cursor: pointer;"><i class="fas fa-download"></i></button>
-    <button class="fab-button main" aria-label="Add Stock" style="width: 55px; height: 55px; border-radius: 50%; background: var(--color-success); color: white; border: none; box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2); font-size: 26px; display: flex; align-items: center; justify-content: center; cursor: pointer;"><i class="fas fa-plus"></i></button>
+    <button class="fab-button" aria-label="Download/Filter"><i class="fas fa-download"></i></button>
+    <button class="fab-button main" aria-label="Add Stock"><i class="fas fa-plus"></i></button>
 </div>
 
 <nav class="bottom-nav" style="background:#1e3a8a; color:white; display: flex; justify-content: space-around; padding: 10px 0; position: fixed; bottom: 0; width: 100%; box-shadow: 0 -2px 10px rgba(0,0,0,0.1); z-index: 100;">
@@ -408,10 +425,6 @@
         "https://docs.google.com/spreadsheets/d/e/2PACX-1vTigsGhlpnrwXI_q8RklVhfc7cD8dezLyLS9fXHN842Tk6dM430UVo5UTMjFKV08P3f0pKNtsadi-t3/pub?gid=438476529&single=true&output=csv";
     const PURCHASES_CSV =
         "https://docs.google.com/spreadsheets/d/e/2PACX-1vTigsGhlpnrwXI_q8RklVhfc7cD8dezLyLS9fXHN842Tk6dM430UVo5UTMjFKV08P3f0pKNtsadi-t3/pub?gid=1808784762&single=true&output=csv";
-
-    // --- Performance Configuration ---
-    const INITIAL_RENDER_COUNT = 50; // Products to render immediately
-    const BATCH_SIZE = 100;         // Products to render per subsequent batch
 
     // Simple CSV parser
     function parseCSV(text) {
@@ -439,13 +452,16 @@
         });
     }
 
+    // Fetches and parses CSV data
     async function fetchCSV(url) {
+        // Use a cache header for faster subsequent loading during development/testing
         const res = await fetch(url, { cache: 'no-cache' }); 
         if (!res.ok) throw new Error("Failed to fetch " + url);
         const txt = await res.text();
         return parseCSV(txt);
     }
 
+    // Creates a header name to column index map
     function indexHeaders(row) {
         const map = {};
         row.forEach((h, idx) => {
@@ -457,8 +473,7 @@
     const state = {
         productsByBarcode: {},
         productsList: [],
-        viewMode: "all",
-        isDesktop: window.matchMedia("(min-width: 768px)").matches
+        viewMode: "all"
     };
 
     /**
@@ -477,7 +492,7 @@
             const salesHeader = indexHeaders(salesRows[0] || []);
             const purchHeader = indexHeaders(purchaseRows[0] || []);
 
-            // 1. Build initial product list (same logic as before)
+            // 1. Build initial product list
             state.productsByBarcode = {};
             for (let i = 1; i < prodRows.length; i++) {
                 const r = prodRows[i];
@@ -501,13 +516,12 @@
                     sku: r[prodHeader["AMAZON SKU INART"]] || "",
                     purchases: 0,
                     sales: 0,
-                    currentStock: 0
+                    currentStock: 0 // Will be computed
                 };
                 state.productsByBarcode[barcode] = p;
             }
 
-            // 2. Aggregate sales and purchases (same logic as before)
-            // ... (Sales and Purchases aggregation logic is unchanged for brevity)
+            // 2. Aggregate sales
             if (salesRows.length > 1) {
                 const idxBarcode = salesHeader["Product Barcode"];
                 const idxQty = salesHeader["Quantity"];
@@ -521,6 +535,7 @@
                 }
             }
 
+            // 3. Aggregate purchases
             if (purchaseRows.length > 1) {
                 const idxBarcode = purchHeader["Product Barcode"];
                 const idxQty = purchHeader["Quantity"];
@@ -534,22 +549,21 @@
                 }
             }
 
-            // 3. Compute final stock
+            // 4. Compute final stock
             state.productsList = Object.values(state.productsByBarcode);
             state.productsList.forEach(p => {
                 p.currentStock = p.initialStock + p.purchases - p.sales;
             });
 
-            // 4. Update UI
+            // 5. Update UI
             populateFilters();
             updateSummary();
-            renderProducts(); 
+            renderProducts(); // Combined render for mobile list and desktop table
             
         } catch (err) {
             console.error("Load error:", err);
-            const errMsg = `Error loading data: ${err.message}`;
-            document.getElementById("tableBody").innerHTML = `<tr><td colspan="8" class="loading-placeholder" style="color:var(--color-error);">${errMsg}</td></tr>`;
-             document.getElementById("mobileList").innerHTML = `<li><div class="loading-placeholder" style="color:var(--color-error);">${errMsg}</div></li>`;
+            document.getElementById("tableBody").innerHTML = `<tr><td colspan="8" style="text-align:center;padding:20px;color:var(--color-error);">Error loading data: ${err.message}</td></tr>`;
+             document.getElementById("mobileList").innerHTML = `<li><div style="text-align:center;padding:20px;color:var(--color-error);">Error loading data: ${err.message}</div></li>`;
         }
     }
 
@@ -583,13 +597,13 @@
     }
 
     function updateSummary() {
-        // ... (Summary logic is unchanged for brevity)
         const totalSkus = state.productsList.length;
         const categories = new Set(state.productsList.map(p => p.category).filter(Boolean));
         const totalUnits = state.productsList.reduce((sum, p) => sum + (p.currentStock || 0), 0);
         const lowStockCount = state.productsList.filter(p => 
             p.currentStock > 0 && p.currentStock <= p.restockLevel
         ).length;
+        // Use functional style to find best seller
         const best = state.productsList.reduce((best, current) => 
             (current.sales || 0) > (best.sales || 0) ? current : best, {sales: 0});
 
@@ -610,7 +624,6 @@
     }
 
     function getFilteredProducts() {
-        // ... (Filtering and Sorting logic is unchanged for brevity)
         const search = document.getElementById("searchInput").value.trim().toLowerCase();
         const category = document.getElementById("categoryFilter").value;
         const vendor = document.getElementById("vendorFilter").value;
@@ -618,6 +631,7 @@
 
         let list = state.productsList.slice();
 
+        // View Mode Filter
         if (state.viewMode === "low") {
             list = list.filter(p => p.currentStock <= p.restockLevel && p.currentStock > 0);
         } else if (state.viewMode === "zero") {
@@ -626,6 +640,7 @@
             list = list.filter(p => p.sales > 0);
         }
 
+        // Standard Filters
         if (category) {
             list = list.filter(p => p.category === category);
         }
@@ -633,6 +648,7 @@
             list = list.filter(p => p.vendor === vendor);
         }
         
+        // Search Filter
         if (search) {
             list = list.filter(p => {
                 const s = [p.name, p.barcode, p.category, p.vendor, p.asin, p.sku].join(" ").toLowerCase();
@@ -640,6 +656,7 @@
             });
         }
 
+        // Sorting
         if (sortMode === "name") {
             list.sort((a, b) => (a.name || a.barcode).localeCompare(b.name || b.barcode));
         } else if (sortMode === "stockDesc") {
@@ -653,7 +670,7 @@
         return list;
     }
     
-    // --- Optimized Rendering with Batching for Performance ---
+    // Combined render function for mobile list and desktop table
     function renderProducts() {
         const list = getFilteredProducts();
         const tbody = document.getElementById("tableBody");
@@ -663,111 +680,79 @@
         mobileList.innerHTML = "";
 
         if (list.length === 0) {
-            const noResults = 'No products found matching your criteria.';
-            tbody.innerHTML = `<tr><td colspan="8" class="loading-placeholder">${noResults}</td></tr>`;
-            mobileList.innerHTML = `<li><div class="loading-placeholder">${noResults}</div></li>`;
+            const noResults = '<div style="text-align:center;padding:20px;color:var(--color-text-muted);">No products found matching your criteria.</div>';
+            tbody.innerHTML = `<tr><td colspan="8" style="text-align:center;padding:20px;color:var(--color-text-muted);">No products found matching your criteria.</td></tr>`;
+            mobileList.innerHTML = `<li>${noResults}</li>`;
             return;
         }
 
-        // Use fragment for faster DOM insertion
-        const tableFragment = document.createDocumentFragment();
-        const mobileFragment = document.createDocumentFragment();
-        
-        let batchIndex = 0;
-        const isDesktop = window.matchMedia("(min-width: 768px)").matches;
+        list.forEach(p => {
+            const stockCls = p.currentStock <= 0 ? "stock-zero" : 
+                             (p.currentStock <= p.restockLevel ? "stock-low" : "stock-ok");
 
-        function renderBatch() {
-            const start = batchIndex;
-            const end = Math.min(list.length, start + (start === 0 ? INITIAL_RENDER_COUNT : BATCH_SIZE));
-            
-            for (let i = start; i < end; i++) {
-                const p = list[i];
-                const stockCls = p.currentStock <= 0 ? "stock-zero" : 
-                                 (p.currentStock <= p.restockLevel ? "stock-low" : "stock-ok");
+            // --- Mobile List Item ---
+            const li = document.createElement("li");
+            li.className = "product-item";
+            li.innerHTML = `
+                <div class="product-img">
+                    ${p.image && p.image.startsWith("http") ? 
+                        `<img src="${p.image}" alt="${p.name || p.barcode}" onerror="this.style.display='none'; this.parentElement.innerHTML='<div class=\\'no-img\\'>📦</div>';" />` :
+                        `<div class="no-img">📦</div>`
+                    }
+                </div>
+                <div class="product-details">
+                    <div class="product-sku">${p.barcode}</div>
+                    <div class="product-name">${p.name || "-"} / ${p.category || "-"}</div>
+                </div>
+                <div class="product-stock-price">
+                    <div class="product-price">${(p.cost || "-")}</div>
+                    <div class="product-stock-badge ${stockCls}">${p.currentStock}</div>
+                </div>
+                <button style="margin-left:10px; border:none; background:none; color:${var(--color-text-muted)}; font-size:18px;"><i class="fas fa-edit"></i></button>
+            `;
+            mobileList.appendChild(li);
 
-                // --- Mobile List Item ---
-                const li = document.createElement("li");
-                li.className = "product-item";
-                li.innerHTML = `
-                    <div class="product-img-container">
-                        ${p.image && p.image.startsWith("http") ? 
-                            `<img src="${p.image}" alt="${p.name || p.barcode}" class="product-img" onerror="this.style.display='none'; this.parentElement.innerHTML='<div class=\\'no-img\\'>📦</div>';" loading="lazy" />` :
-                            `<div class="no-img">📦</div>`
-                        }
-                    </div>
-                    <div class="product-details-mobile">
-                        <div class="product-sku">${p.barcode}</div>
-                        <div class="product-subtext-mobile">
-                            ${p.category || "-"} &bull; ${p.vendor || "-"} <br>
-                            ASIN/SKU: ${p.asin || p.sku || "-"}
+
+            // --- Desktop Table Row ---
+            const tr = document.createElement("tr");
+            tr.innerHTML = `
+                <td>
+                    <div style="display:flex; align-items:center;">
+                        <div class="product-img" style="margin-right:8px;">
+                            ${p.image && p.image.startsWith("http") ? 
+                                `<img src="${p.image}" alt="${p.name || p.barcode}" onerror="this.style.display='none'; this.parentElement.innerHTML='<div class=\\'no-img\\'>📦</div>';" style="width:40px;height:40px;" />` :
+                                `<div class="no-img" style="width:40px;height:40px;font-size:16px;">📦</div>`
+                            }
+                        </div>
+                        <div>
+                            <strong>${p.name || "-"}</strong>
+                            <div class="table-subtext">${p.category || "-"}</div>
                         </div>
                     </div>
-                    <div class="product-stock-edit-mobile">
-                        <span class="product-stock-badge ${stockCls}">${p.currentStock}</span>
-                        <button class="mobile-edit-btn" aria-label="Edit product"><i class="fas fa-edit"></i></button>
-                    </div>
-                `;
-                mobileFragment.appendChild(li);
-
-                // --- Desktop Table Row ---
-                if (isDesktop) {
-                    const tr = document.createElement("tr");
-                    tr.innerHTML = `
-                        <td>
-                            <div style="display:flex; align-items:center;">
-                                <div class="product-img-container" style="width:40px;height:40px; margin-right:8px;">
-                                    ${p.image && p.image.startsWith("http") ? 
-                                        `<img src="${p.image}" alt="${p.name || p.barcode}" class="product-img" onerror="this.style.display='none'; this.parentElement.innerHTML='<div class=\\'no-img\\'>📦</div>';" style="width:40px;height:40px;" loading="lazy" />` :
-                                        `<div class="no-img" style="width:40px;height:40px;font-size:16px;">📦</div>`
-                                    }
-                                </div>
-                                <div>
-                                    <strong>${p.name || "-"}</strong>
-                                    <div class="table-subtext">${p.category || "-"}</div>
-                                </div>
-                            </div>
-                        </td>
-                        <td>${p.barcode}</td>
-                        <td>
-                            <div>${p.category || "-"}</div>
-                            <div class="table-subtext">${p.vendor || ""}</div>
-                        </td>
-                        <td>
-                            <div>${p.asin || "-"}</div>
-                            <div class="table-subtext">${p.sku || "-"}</div>
-                        </td>
-                        <td>${p.cost || "-"}</td>
-                        <td>
-                            <span class="stock-badge ${stockCls}">${p.currentStock}</span>
-                            ${p.restockLevel ? `<div class="table-subtext">Restock at ${p.restockLevel}</div>` : ''}
-                        </td>
-                        <td>${p.purchases || 0}</td>
-                        <td>${p.sales || 0}</td>
-                    `;
-                    tableFragment.appendChild(tr);
-                }
-            }
-            
-            mobileList.appendChild(mobileFragment);
-            if (isDesktop) tbody.appendChild(tableFragment);
-
-            batchIndex = end;
-
-            if (batchIndex < list.length) {
-                // Schedule the next batch to run during the browser's idle time
-                requestAnimationFrame(renderBatch);
-            }
-        }
-
-        // Start the rendering process
-        renderBatch();
+                </td>
+                <td>${p.barcode}</td>
+                <td>
+                    <div>${p.category || "-"}</div>
+                    <div class="table-subtext">${p.vendor || ""}</div>
+                </td>
+                <td>
+                    <div>${p.asin || "-"}</div>
+                    <div class="table-subtext">${p.sku || "-"}</div>
+                </td>
+                <td>${p.cost || "-"}</td>
+                <td>
+                    <span class="stock-badge ${stockCls}">${p.currentStock}</span>
+                    ${p.restockLevel ? `<div class="table-subtext">Restock at ${p.restockLevel}</div>` : ''}
+                </td>
+                <td>${p.purchases || 0}</td>
+                <td>${p.sales || 0}</td>
+            `;
+            tbody.appendChild(tr);
+        });
     }
 
     // Event wiring
     document.addEventListener("DOMContentLoaded", () => {
-        // Initial check for desktop size
-        state.isDesktop = window.matchMedia("(min-width: 768px)").matches;
-
         loadData();
 
         // Combined event listener for all filtering/sorting elements
@@ -793,14 +778,6 @@
                 state.viewMode = btn.dataset.view;
                 renderProducts();
             });
-        });
-
-        // Listen for screen size changes to toggle layout/rendering
-        window.matchMedia("(min-width: 768px)").addListener((e) => {
-            if (e.matches !== state.isDesktop) {
-                state.isDesktop = e.matches;
-                renderProducts(); // Re-render to switch between table and list
-            }
         });
     });
 </script>
