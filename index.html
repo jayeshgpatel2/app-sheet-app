@@ -1,0 +1,580 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>InArt Stock Dashboard</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: #f5f5f7;
+      color: #111827;
+    }
+    header {
+      padding: 12px 20px;
+      background: #111827;
+      color: #f9fafb;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+    header h1 {
+      margin: 0;
+      font-size: 18px;
+      font-weight: 600;
+    }
+    .badge {
+      background: #22c55e;
+      color: white;
+      border-radius: 999px;
+      padding: 2px 10px;
+      font-size: 11px;
+      font-weight: 600;
+    }
+    main {
+      padding: 16px;
+      max-width: 1300px;
+      margin: 0 auto;
+    }
+    .controls {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-bottom: 12px;
+    }
+    .controls > * {
+      flex: 1 1 160px;
+      min-width: 0;
+    }
+    input, select {
+      width: 100%;
+      padding: 7px 9px;
+      border-radius: 6px;
+      border: 1px solid #d1d5db;
+      font-size: 13px;
+      outline: none;
+    }
+    input:focus, select:focus {
+      border-color: #3b82f6;
+      box-shadow: 0 0 0 1px #3b82f633;
+    }
+    .pill-group {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 10px;
+    }
+    .pill {
+      padding: 6px 10px;
+      border-radius: 999px;
+      border: 1px solid #d1d5db;
+      background: white;
+      font-size: 12px;
+      cursor: pointer;
+    }
+    .pill.active {
+      background: #111827;
+      color: #f9fafb;
+      border-color: #111827;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background: white;
+      border-radius: 10px;
+      overflow: hidden;
+      box-shadow: 0 10px 30px rgba(15,23,42,0.08);
+      font-size: 12px;
+    }
+    thead {
+      background: #111827;
+      color: #f9fafb;
+    }
+    th, td {
+      padding: 8px 10px;
+      text-align: left;
+      border-bottom: 1px solid #e5e7eb;
+      vertical-align: middle;
+    }
+    th {
+      position: sticky;
+      top: 0;
+      z-index: 1;
+      font-weight: 600;
+    }
+    tbody tr:hover {
+      background: #f3f4f6;
+    }
+    .img-cell {
+      width: 60px;
+    }
+    .img-cell img {
+      max-width: 50px;
+      max-height: 50px;
+      border-radius: 6px;
+      object-fit: cover;
+      border: 1px solid #e5e7eb;
+    }
+    .stock-badge {
+      padding: 2px 8px;
+      border-radius: 999px;
+      font-weight: 600;
+      font-size: 11px;
+      display: inline-block;
+    }
+    .stock-ok { background: #dcfce7; color: #15803d; }
+    .stock-low { background: #fee2e2; color: #b91c1c; }
+    .stock-zero { background: #f97316; color: #111827; }
+    .subtext {
+      font-size: 11px;
+      color: #6b7280;
+    }
+    .summary {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-bottom: 14px;
+    }
+    .card {
+      flex: 1 1 160px;
+      background: white;
+      border-radius: 12px;
+      padding: 10px 12px;
+      box-shadow: 0 6px 20px rgba(15,23,42,0.05);
+    }
+    .card-title {
+      font-size: 11px;
+      color: #6b7280;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      margin-bottom: 4px;
+    }
+    .card-value {
+      font-size: 18px;
+      font-weight: 600;
+    }
+    .card-sub {
+      font-size: 11px;
+      color: #6b7280;
+      margin-top: 2px;
+    }
+    @media (max-width: 768px) {
+      header { padding: 10px 12px; }
+      main { padding: 10px; }
+      table { font-size: 11px; }
+      th, td { padding: 6px 6px; }
+      .img-cell { display: none; }
+    }
+  </style>
+</head>
+<body>
+<header>
+  <h1>InArt Stock Dashboard</h1>
+  <span class="badge">Read-only · Google Sheets → GitHub</span>
+</header>
+
+<main>
+  <section class="summary">
+    <div class="card">
+      <div class="card-title">Total SKUs</div>
+      <div class="card-value" id="statTotalSkus">–</div>
+      <div class="card-sub" id="statTotalCategories">–</div>
+    </div>
+    <div class="card">
+      <div class="card-title">Units in Stock</div>
+      <div class="card-value" id="statUnitsStock">–</div>
+      <div class="card-sub" id="statLowStock">–</div>
+    </div>
+    <div class="card">
+      <div class="card-title">Best Seller (Qty)</div>
+      <div class="card-value" id="statBestSeller">–</div>
+      <div class="card-sub" id="statBestSellerQty">–</div>
+    </div>
+  </section>
+
+  <section class="controls">
+    <input type="text" id="searchInput" placeholder="Search by name, barcode, ASIN, SKU…" />
+    <select id="categoryFilter">
+      <option value="">All categories</option>
+    </select>
+    <select id="vendorFilter">
+      <option value="">All vendors</option>
+    </select>
+    <select id="sortMode">
+      <option value="name">Sort: Product name (A-Z)</option>
+      <option value="stockDesc">Sort: Stock high → low</option>
+      <option value="stockAsc">Sort: Stock low → high</option>
+      <option value="salesDesc">Sort: Best sellers (Qty)</option>
+    </select>
+  </section>
+
+  <section class="pill-group">
+    <button class="pill active" data-view="all">All products</button>
+    <button class="pill" data-view="low">Low stock</button>
+    <button class="pill" data-view="zero">Out of stock</button>
+    <button class="pill" data-view="best">Best sellers</button>
+  </section>
+
+  <section>
+    <table>
+      <thead>
+      <tr>
+        <th class="img-cell">Image</th>
+        <th>Product</th>
+        <th>Barcode</th>
+        <th>Category / Vendor</th>
+        <th>ASIN / SKU</th>
+        <th>Cost</th>
+        <th>Stock</th>
+        <th>Purchases</th>
+        <th>Sales</th>
+      </tr>
+      </thead>
+      <tbody id="tableBody">
+      <!-- Rows injected by JS -->
+      </tbody>
+    </table>
+  </section>
+</main>
+
+<script>
+  // === CONFIG: your CSV endpoints ===
+  const PRODUCT_CSV =
+    "https://docs.google.com/spreadsheets/d/e/2PACX-1vTigsGhlpnrwXI_q8RklVhfc7cD8dezLyLS9fXHN842Tk6dM430UVo5UTMjFKV08P3f0pKNtsadi-t3/pub?gid=2104089495&single=true&output=csv";
+  const SALES_CSV =
+    "https://docs.google.com/spreadsheets/d/e/2PACX-1vTigsGhlpnrwXI_q8RklVhfc7cD8dezLyLS9fXHN842Tk6dM430UVo5UTMjFKV08P3f0pKNtsadi-t3/pub?gid=438476529&single=true&output=csv";
+  const PURCHASES_CSV =
+    "https://docs.google.com/spreadsheets/d/e/2PACX-1vTigsGhlpnrwXI_q8RklVhfc7cD8dezLyLS9fXHN842Tk6dM430UVo5UTMjFKV08P3f0pKNtsadi-t3/pub?gid=1808784762&single=true&output=csv";
+
+  // Simple CSV parser (good enough for AppSheet-style data)
+  function parseCSV(text) {
+    const lines = text.trim().split(/\r?\n/);
+    return lines.map(line => {
+      const result = [];
+      let current = '';
+      let inQuotes = false;
+      for (let i = 0; i < line.length; i++) {
+        const char = line[i];
+        if (char === '"' && line[i + 1] === '"') {
+          current += '"';
+          i++;
+        } else if (char === '"') {
+          inQuotes = !inQuotes;
+        } else if (char === ',' && !inQuotes) {
+          result.push(current);
+          current = '';
+        } else {
+          current += char;
+        }
+      }
+      result.push(current);
+      return result;
+    });
+  }
+
+  async function fetchCSV(url) {
+    const res = await fetch(url);
+    if (!res.ok) throw new Error("Failed to fetch " + url);
+    const txt = await res.text();
+    return parseCSV(txt);
+  }
+
+  function indexHeaders(row) {
+    const map = {};
+    row.forEach((h, idx) => {
+      map[h.trim()] = idx;
+    });
+    return map;
+  }
+
+  const state = {
+    productsByBarcode: {}, // barcode -> product object
+    productsList: [],      // array for easy iteration
+    viewMode: "all"
+  };
+
+  async function loadData() {
+    try {
+      const [prodRows, salesRows, purchaseRows] = await Promise.all([
+        fetchCSV(PRODUCT_CSV),
+        fetchCSV(SALES_CSV),
+        fetchCSV(PURCHASES_CSV)
+      ]);
+
+      const prodHeader = indexHeaders(prodRows[0]);
+      const salesHeader = indexHeaders(salesRows[0] || []);
+      const purchHeader = indexHeaders(purchaseRows[0] || []);
+
+      // Build products
+      for (let i = 1; i < prodRows.length; i++) {
+        const r = prodRows[i];
+        if (!r.length) continue;
+        const barcode = r[prodHeader["Product Barcode"]] || "";
+        if (!barcode) continue;
+        const p = {
+          barcode,
+          name: r[prodHeader["Product"]] || "",
+          category: r[prodHeader["Category"]] || "",
+          image: r[prodHeader["Image"]] || r[prodHeader["AMAZON IMAGE"]] || "",
+          initialStock: Number(r[prodHeader["Initial Stock"]] || 0),
+          restockLevel: Number(r[prodHeader["Restock Level"]] || 0),
+          cost: r[prodHeader["Cost"]] || "",
+          vendor: r[prodHeader["Vendor"]] || "",
+          asin: r[prodHeader["AMAZON ASIN INART"]] || "",
+          sku: r[prodHeader["AMAZON SKU INART"]] || "",
+          purchases: 0,
+          sales: 0,
+          currentStock: 0
+        };
+        state.productsByBarcode[barcode] = p;
+      }
+
+      // Aggregate sales
+      if (salesRows.length > 1) {
+        const idxBarcode = salesHeader["Product Barcode"];
+        const idxQty = salesHeader["Quantity"];
+        for (let i = 1; i < salesRows.length; i++) {
+          const r = salesRows[i];
+          const bc = r[idxBarcode] || "";
+          const qty = Number(r[idxQty] || 0);
+          if (state.productsByBarcode[bc]) {
+            state.productsByBarcode[bc].sales += qty;
+          }
+        }
+      }
+
+      // Aggregate purchases
+      if (purchaseRows.length > 1) {
+        const idxBarcode = purchHeader["Product Barcode"];
+        const idxQty = purchHeader["Quantity"];
+        for (let i = 1; i < purchaseRows.length; i++) {
+          const r = purchaseRows[i];
+          const bc = r[idxBarcode] || "";
+          const qty = Number(r[idxQty] || 0);
+          if (state.productsByBarcode[bc]) {
+            state.productsByBarcode[bc].purchases += qty;
+          }
+        }
+      }
+
+      // Compute current stock
+      state.productsList = Object.values(state.productsByBarcode);
+      state.productsList.forEach(p => {
+        p.currentStock = p.initialStock + p.purchases - p.sales;
+      });
+
+      populateFilters();
+      updateSummary();
+      renderTable();
+    } catch (err) {
+      console.error(err);
+      alert("Error loading data. Check console for details.");
+    }
+  }
+
+  function populateFilters() {
+    const categorySet = new Set();
+    const vendorSet = new Set();
+    state.productsList.forEach(p => {
+      if (p.category) categorySet.add(p.category);
+      if (p.vendor) vendorSet.add(p.vendor);
+    });
+    const categoryFilter = document.getElementById("categoryFilter");
+    const vendorFilter = document.getElementById("vendorFilter");
+
+    [...categorySet].sort().forEach(cat => {
+      const opt = document.createElement("option");
+      opt.value = cat;
+      opt.textContent = cat;
+      categoryFilter.appendChild(opt);
+    });
+    [...vendorSet].sort().forEach(v => {
+      const opt = document.createElement("option");
+      opt.value = v;
+      opt.textContent = v;
+      vendorFilter.appendChild(opt);
+    });
+  }
+
+  function updateSummary() {
+    const totalSkus = state.productsList.length;
+    const categories = new Set(state.productsList.map(p => p.category).filter(Boolean));
+    const totalUnits = state.productsList.reduce((sum, p) => sum + (p.currentStock || 0), 0);
+    const lowStockCount = state.productsList.filter(p => p.currentStock <= p.restockLevel).length;
+    const best = state.productsList.slice().sort((a, b) => (b.sales || 0) - (a.sales || 0))[0];
+
+    document.getElementById("statTotalSkus").textContent = totalSkus;
+    document.getElementById("statTotalCategories").textContent =
+      categories.size + " categories";
+
+    document.getElementById("statUnitsStock").textContent = totalUnits;
+    document.getElementById("statLowStock").textContent =
+      lowStockCount + " low / below restock";
+
+    if (best && best.sales > 0) {
+      document.getElementById("statBestSeller").textContent = best.name || best.barcode;
+      document.getElementById("statBestSellerQty").textContent =
+        best.sales + " units sold";
+    } else {
+      document.getElementById("statBestSeller").textContent = "–";
+      document.getElementById("statBestSellerQty").textContent = "No sales yet";
+    }
+  }
+
+  function getFilteredProducts() {
+    const search = document.getElementById("searchInput").value.trim().toLowerCase();
+    const category = document.getElementById("categoryFilter").value;
+    const vendor = document.getElementById("vendorFilter").value;
+    const sortMode = document.getElementById("sortMode").value;
+
+    let list = state.productsList.slice();
+
+    // view mode: all / low / zero / best
+    if (state.viewMode === "low") {
+      list = list.filter(p => p.currentStock <= p.restockLevel && p.currentStock > 0);
+    } else if (state.viewMode === "zero") {
+      list = list.filter(p => p.currentStock <= 0);
+    } else if (state.viewMode === "best") {
+      list = list.filter(p => p.sales > 0);
+    }
+
+    if (category) {
+      list = list.filter(p => p.category === category);
+    }
+    if (vendor) {
+      list = list.filter(p => p.vendor === vendor);
+    }
+    if (search) {
+      list = list.filter(p => {
+        const s = [
+          p.name,
+          p.barcode,
+          p.category,
+          p.vendor,
+          p.asin,
+          p.sku
+        ].join(" ").toLowerCase();
+        return s.includes(search);
+      });
+    }
+
+    // Sorting
+    if (sortMode === "name") {
+      list.sort((a, b) => (a.name || a.barcode).localeCompare(b.name || b.barcode));
+    } else if (sortMode === "stockDesc") {
+      list.sort((a, b) => (b.currentStock || 0) - (a.currentStock || 0));
+    } else if (sortMode === "stockAsc") {
+      list.sort((a, b) => (a.currentStock || 0) - (b.currentStock || 0));
+    } else if (sortMode === "salesDesc") {
+      list.sort((a, b) => (b.sales || 0) - (a.sales || 0));
+    }
+
+    return list;
+  }
+
+  function renderTable() {
+    const tbody = document.getElementById("tableBody");
+    tbody.innerHTML = "";
+    const list = getFilteredProducts();
+
+    list.forEach(p => {
+      const tr = document.createElement("tr");
+
+      // image
+      const tdImg = document.createElement("td");
+      tdImg.className = "img-cell";
+      if (p.image) {
+        const img = document.createElement("img");
+        img.src = p.image;
+        img.alt = p.name || p.barcode;
+        tdImg.appendChild(img);
+      }
+      tr.appendChild(tdImg);
+
+      // product
+      const tdName = document.createElement("td");
+      tdName.innerHTML = `<div>${p.name || "-"}</div>
+        <div class="subtext">${p.category || ""}</div>`;
+      tr.appendChild(tdName);
+
+      // barcode
+      const tdBarcode = document.createElement("td");
+      tdBarcode.textContent = p.barcode;
+      tr.appendChild(tdBarcode);
+
+      // category/vendor
+      const tdCatVendor = document.createElement("td");
+      tdCatVendor.innerHTML =
+        `<div>${p.category || "-"}</div><div class="subtext">${p.vendor || ""}</div>`;
+      tr.appendChild(tdCatVendor);
+
+      // asin/sku
+      const tdAsinSku = document.createElement("td");
+      tdAsinSku.innerHTML =
+        `<div>${p.asin || "-"}</div><div class="subtext">${p.sku || ""}</div>`;
+      tr.appendChild(tdAsinSku);
+
+      // cost
+      const tdCost = document.createElement("td");
+      tdCost.textContent = p.cost || "-";
+      tr.appendChild(tdCost);
+
+      // stock
+      const tdStock = document.createElement("td");
+      const badge = document.createElement("span");
+      badge.className = "stock-badge";
+      let cls = "stock-ok";
+      if (p.currentStock <= 0) cls = "stock-zero";
+      else if (p.currentStock <= p.restockLevel) cls = "stock-low";
+      badge.classList.add(cls);
+      badge.textContent = p.currentStock;
+      tdStock.appendChild(badge);
+      if (p.restockLevel) {
+        const sub = document.createElement("div");
+        sub.className = "subtext";
+        sub.textContent = "Restock at " + p.restockLevel;
+        tdStock.appendChild(sub);
+      }
+      tr.appendChild(tdStock);
+
+      // purchases
+      const tdPurch = document.createElement("td");
+      tdPurch.textContent = p.purchases || 0;
+      tr.appendChild(tdPurch);
+
+      // sales
+      const tdSales = document.createElement("td");
+      tdSales.textContent = p.sales || 0;
+      tr.appendChild(tdSales);
+
+      tbody.appendChild(tr);
+    });
+  }
+
+  // Event wiring
+  document.addEventListener("DOMContentLoaded", () => {
+    loadData();
+
+    document.getElementById("searchInput").addEventListener("input", () => {
+      renderTable();
+    });
+    document.getElementById("categoryFilter").addEventListener("change", renderTable);
+    document.getElementById("vendorFilter").addEventListener("change", renderTable);
+    document.getElementById("sortMode").addEventListener("change", renderTable);
+
+    document.querySelectorAll(".pill").forEach(btn => {
+      btn.addEventListener("click", () => {
+        document.querySelectorAll(".pill").forEach(b => b.classList.remove("active"));
+        btn.classList.add("active");
+        state.viewMode = btn.dataset.view;
+        renderTable();
+      });
+    });
+  });
+</script>
+</body>
+</html>
