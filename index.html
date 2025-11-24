@@ -3,9 +3,9 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>InArt Stock Dashboard - Modern</title>
+  <title>InArt Stock Dashboard - Secure</title>
   
-  <!-- React & Babel for JSX -->
+  <!-- React & Babel -->
   <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
   <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
   <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
@@ -27,18 +27,114 @@
       --gray-50: #f9fafb;
       --gray-100: #f3f4f6;
       --gray-200: #e5e7eb;
-      --gray-300: #d1d5db;
       --gray-600: #4b5563;
-      --gray-700: #374151;
-      --gray-800: #1f2937;
       --gray-900: #111827;
     }
 
     body {
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', sans-serif;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
       background: var(--gray-50);
       color: var(--gray-900);
       line-height: 1.5;
+    }
+
+    /* === LOGIN SCREEN === */
+    .login-container {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+      padding: 1rem;
+    }
+
+    .login-box {
+      background: white;
+      padding: 2rem;
+      border-radius: 16px;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+      width: 100%;
+      max-width: 400px;
+    }
+
+    .login-logo {
+      text-align: center;
+      font-size: 3rem;
+      margin-bottom: 1rem;
+    }
+
+    .login-title {
+      text-align: center;
+      font-size: 1.5rem;
+      font-weight: 700;
+      margin-bottom: 0.5rem;
+      color: var(--gray-900);
+    }
+
+    .login-subtitle {
+      text-align: center;
+      font-size: 0.875rem;
+      color: var(--gray-600);
+      margin-bottom: 2rem;
+    }
+
+    .form-group {
+      margin-bottom: 1.5rem;
+    }
+
+    .form-label {
+      display: block;
+      font-size: 0.875rem;
+      font-weight: 600;
+      color: var(--gray-900);
+      margin-bottom: 0.5rem;
+    }
+
+    .form-input {
+      width: 100%;
+      padding: 0.75rem 1rem;
+      border: 2px solid var(--gray-200);
+      border-radius: 8px;
+      font-size: 1rem;
+      transition: all 0.2s;
+    }
+
+    .form-input:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+    }
+
+    .login-btn {
+      width: 100%;
+      padding: 0.875rem;
+      background: var(--primary);
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    .login-btn:hover {
+      background: var(--primary-dark);
+    }
+
+    .login-btn:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+
+    .error-message {
+      background: #fee2e2;
+      color: #991b1b;
+      padding: 0.75rem;
+      border-radius: 8px;
+      font-size: 0.875rem;
+      margin-bottom: 1rem;
+      text-align: center;
     }
 
     /* === HEADER === */
@@ -59,7 +155,6 @@
       justify-content: space-between;
       align-items: center;
       gap: 1rem;
-      flex-wrap: wrap;
     }
 
     .header-title {
@@ -67,12 +162,20 @@
       font-weight: 700;
     }
 
-    .header-badge {
+    .logout-btn {
       background: rgba(255, 255, 255, 0.2);
-      padding: 0.25rem 0.75rem;
-      border-radius: 999px;
+      color: white;
+      border: none;
+      padding: 0.5rem 1rem;
+      border-radius: 8px;
       font-size: 0.875rem;
+      cursor: pointer;
       backdrop-filter: blur(10px);
+      transition: background 0.2s;
+    }
+
+    .logout-btn:hover {
+      background: rgba(255, 255, 255, 0.3);
     }
 
     /* === MAIN CONTAINER === */
@@ -83,10 +186,10 @@
       padding: 1rem;
     }
 
-    /* === STATS CARDS === */
+    /* === STATS === */
     .stats-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
       gap: 1rem;
       margin-bottom: 1.5rem;
     }
@@ -110,7 +213,6 @@
     .stat-value {
       font-size: 1.75rem;
       font-weight: 700;
-      color: var(--gray-900);
     }
 
     .stat-sub {
@@ -119,7 +221,7 @@
       margin-top: 0.25rem;
     }
 
-    /* === SEARCH & FILTERS === */
+    /* === FILTERS === */
     .filters {
       background: white;
       padding: 1rem;
@@ -188,7 +290,7 @@
 
     .quick-filter-btn {
       padding: 0.5rem 1rem;
-      border: 2px solid var(--gray-300);
+      border: 2px solid var(--gray-200);
       border-radius: 999px;
       background: white;
       font-size: 0.875rem;
@@ -209,77 +311,96 @@
       border-color: var(--primary);
     }
 
-    /* === PRODUCT GRID (Mobile First) === */
-    .products-grid {
-      display: grid;
-      grid-template-columns: 1fr;
-      gap: 1rem;
-    }
-
-    .product-card {
+    /* === TABLE CONTAINER === */
+    .table-container {
       background: white;
       border-radius: 12px;
       box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
       overflow: hidden;
-      transition: transform 0.2s, box-shadow 0.2s;
-      cursor: pointer;
     }
 
-    .product-card:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 8px 16px rgba(0, 0, 0, 0.12);
+    /* === TABLE DESIGN (Desktop) === */
+    .product-table {
+      width: 100%;
+      border-collapse: collapse;
+      display: none; /* Hidden on mobile */
     }
 
-    .product-card-header {
-      display: flex;
-      gap: 1rem;
+    .product-table thead {
+      background: var(--gray-900);
+      color: white;
+    }
+
+    .product-table th {
+      padding: 1rem;
+      text-align: left;
+      font-weight: 600;
+      font-size: 0.875rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .product-table td {
       padding: 1rem;
       border-bottom: 1px solid var(--gray-200);
+      vertical-align: middle;
     }
 
-    .product-image-container {
-      flex-shrink: 0;
+    .product-table tbody tr:hover {
+      background: var(--gray-50);
+    }
+
+    .product-table tbody tr:last-child td {
+      border-bottom: none;
+    }
+
+    /* === IMAGE IN TABLE === */
+    .table-image-cell {
       width: 100px;
-      height: 100px;
+    }
+
+    .table-image {
+      width: 80px;
+      height: 80px;
+      object-fit: cover;
       border-radius: 8px;
-      overflow: hidden;
+      cursor: pointer;
+      border: 2px solid var(--gray-200);
+      transition: transform 0.2s;
+    }
+
+    .table-image:hover {
+      transform: scale(1.05);
+      border-color: var(--primary);
+    }
+
+    .table-image-placeholder {
+      width: 80px;
+      height: 80px;
       background: var(--gray-100);
+      border-radius: 8px;
       display: flex;
       align-items: center;
       justify-content: center;
+      font-size: 2rem;
+      color: var(--gray-600);
     }
 
-    .product-image {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-    }
-
-    .product-image-placeholder {
-      font-size: 2.5rem;
-      color: var(--gray-400);
-    }
-
-    .product-info {
-      flex: 1;
-      min-width: 0;
-    }
-
-    .product-name {
-      font-size: 1rem;
+    /* === PRODUCT INFO IN TABLE === */
+    .product-name-cell {
       font-weight: 600;
       color: var(--gray-900);
-      margin-bottom: 0.25rem;
-      line-height: 1.3;
+      max-width: 200px;
     }
 
-    .product-category {
+    .product-category-text {
       font-size: 0.875rem;
       color: var(--gray-600);
-      margin-bottom: 0.5rem;
+      margin-top: 0.25rem;
     }
 
-    .product-stock-badge {
+    /* === STOCK BADGE === */
+    .stock-badge {
       display: inline-block;
       padding: 0.25rem 0.75rem;
       border-radius: 999px;
@@ -287,37 +408,93 @@
       font-weight: 600;
     }
 
-    .stock-ok {
-      background: #d1fae5;
-      color: #065f46;
+    .stock-ok { background: #d1fae5; color: #065f46; }
+    .stock-low { background: #fed7aa; color: #92400e; }
+    .stock-zero { background: #fecaca; color: #991b1b; }
+
+    /* === MOBILE CARD VIEW === */
+    .mobile-products {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 1rem;
     }
 
-    .stock-low {
-      background: #fed7aa;
-      color: #92400e;
+    .mobile-product-card {
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+      overflow: hidden;
     }
 
-    .stock-zero {
-      background: #fecaca;
-      color: #991b1b;
+    .mobile-card-header {
+      display: flex;
+      gap: 1rem;
+      padding: 1rem;
+      border-bottom: 2px solid var(--gray-200);
+      background: var(--gray-50);
     }
 
-    .product-card-body {
+    .mobile-image-container {
+      flex-shrink: 0;
+      width: 100px;
+      height: 100px;
+      border-radius: 8px;
+      overflow: hidden;
+      background: white;
+      border: 2px solid var(--gray-200);
+      cursor: pointer;
+    }
+
+    .mobile-image {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .mobile-image-placeholder {
+      width: 100%;
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 2.5rem;
+      color: var(--gray-600);
+      background: var(--gray-100);
+    }
+
+    .mobile-card-info {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .mobile-product-name {
+      font-size: 1rem;
+      font-weight: 600;
+      margin-bottom: 0.25rem;
+    }
+
+    .mobile-product-category {
+      font-size: 0.875rem;
+      color: var(--gray-600);
+      margin-bottom: 0.5rem;
+    }
+
+    .mobile-card-body {
       padding: 1rem;
     }
 
-    .product-details {
+    .mobile-details-grid {
       display: grid;
       grid-template-columns: repeat(2, 1fr);
       gap: 0.75rem;
     }
 
-    .detail-item {
+    .mobile-detail-item {
       display: flex;
       flex-direction: column;
     }
 
-    .detail-label {
+    .mobile-detail-label {
       font-size: 0.75rem;
       color: var(--gray-600);
       text-transform: uppercase;
@@ -325,63 +502,11 @@
       margin-bottom: 0.25rem;
     }
 
-    .detail-value {
+    .mobile-detail-value {
       font-size: 0.875rem;
       font-weight: 500;
       color: var(--gray-900);
       word-break: break-all;
-    }
-
-    /* === LOADING === */
-    .loading-container {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      padding: 3rem;
-      gap: 1rem;
-    }
-
-    .spinner {
-      width: 50px;
-      height: 50px;
-      border: 4px solid var(--gray-200);
-      border-top-color: var(--primary);
-      border-radius: 50%;
-      animation: spin 0.8s linear infinite;
-    }
-
-    @keyframes spin {
-      to { transform: rotate(360deg); }
-    }
-
-    .loading-text {
-      color: var(--gray-600);
-      font-size: 0.875rem;
-    }
-
-    /* === EMPTY STATE === */
-    .empty-state {
-      text-align: center;
-      padding: 3rem 1rem;
-    }
-
-    .empty-icon {
-      font-size: 4rem;
-      margin-bottom: 1rem;
-      opacity: 0.5;
-    }
-
-    .empty-title {
-      font-size: 1.25rem;
-      font-weight: 600;
-      color: var(--gray-900);
-      margin-bottom: 0.5rem;
-    }
-
-    .empty-text {
-      color: var(--gray-600);
-      font-size: 0.875rem;
     }
 
     /* === IMAGE MODAL === */
@@ -391,7 +516,7 @@
       left: 0;
       right: 0;
       bottom: 0;
-      background: rgba(0, 0, 0, 0.8);
+      background: rgba(0, 0, 0, 0.9);
       display: flex;
       align-items: center;
       justify-content: center;
@@ -427,49 +552,73 @@
       justify-content: center;
     }
 
-    /* === DESKTOP RESPONSIVE === */
+    /* === LOADING === */
+    .loading-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 3rem;
+      gap: 1rem;
+    }
+
+    .spinner {
+      width: 50px;
+      height: 50px;
+      border: 4px solid var(--gray-200);
+      border-top-color: var(--primary);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    /* === EMPTY STATE === */
+    .empty-state {
+      text-align: center;
+      padding: 3rem 1rem;
+    }
+
+    .empty-icon {
+      font-size: 4rem;
+      margin-bottom: 1rem;
+      opacity: 0.5;
+    }
+
+    /* === RESPONSIVE === */
     @media (min-width: 768px) {
       .container {
         padding: 2rem;
       }
 
-      .header-title {
-        font-size: 2rem;
+      .mobile-products {
+        display: none; /* Hide mobile cards on desktop */
       }
 
-      .products-grid {
-        grid-template-columns: repeat(2, 1fr);
+      .product-table {
+        display: table; /* Show table on desktop */
       }
 
-      .product-image-container {
-        width: 120px;
-        height: 120px;
+      .table-image {
+        width: 100px;
+        height: 100px;
       }
 
-      .search-input {
-        font-size: 1rem;
-      }
-    }
-
-    @media (min-width: 1024px) {
-      .products-grid {
-        grid-template-columns: repeat(3, 1fr);
-      }
-
-      .stats-grid {
-        grid-template-columns: repeat(4, 1fr);
+      .table-image-placeholder {
+        width: 100px;
+        height: 100px;
       }
     }
 
-    @media (min-width: 1280px) {
-      .products-grid {
-        grid-template-columns: repeat(4, 1fr);
+    @media (max-width: 767px) {
+      .product-table {
+        display: none; /* Hide table on mobile */
       }
-    }
 
-    @media (min-width: 1536px) {
-      .products-grid {
-        grid-template-columns: repeat(5, 1fr);
+      .mobile-products {
+        display: grid; /* Show cards on mobile */
       }
     }
   </style>
@@ -482,6 +631,10 @@
 
     // === CONFIGURATION ===
     const CONFIG = {
+      // 🔐 CHANGE THESE CREDENTIALS!
+      USERNAME: "admin",
+      PASSWORD: "inart2024",
+      
       PRODUCT_CSV: "https://docs.google.com/spreadsheets/d/e/2PACX-1vTigsGhlpnrwXI_q8RklVhfc7cD8dezLyLS9fXHN842Tk6dM430UVo5UTMjFKV08P3f0pKNtsadi-t3/pub?gid=2104089495&single=true&output=csv",
       SALES_CSV: "https://docs.google.com/spreadsheets/d/e/2PACX-1vTigsGhlpnrwXI_q8RklVhfc7cD8dezLyLS9fXHN842Tk6dM430UVo5UTMjFKV08P3f0pKNtsadi-t3/pub?gid=438476529&single=true&output=csv",
       PURCHASES_CSV: "https://docs.google.com/spreadsheets/d/e/2PACX-1vTigsGhlpnrwXI_q8RklVhfc7cD8dezLyLS9fXHN842Tk6dM430UVo5UTMjFKV08P3f0pKNtsadi-t3/pub?gid=1808784762&single=true&output=csv"
@@ -528,8 +681,75 @@
       return parseCSV(txt);
     }
 
-    // === MAIN APP COMPONENT ===
+    // === LOGIN COMPONENT ===
+    function LoginScreen({ onLogin }) {
+      const [username, setUsername] = useState('');
+      const [password, setPassword] = useState('');
+      const [error, setError] = useState('');
+      const [loading, setLoading] = useState(false);
+
+      const handleSubmit = (e) => {
+        e.preventDefault();
+        setError('');
+        setLoading(true);
+
+        setTimeout(() => {
+          if (username === CONFIG.USERNAME && password === CONFIG.PASSWORD) {
+            onLogin();
+          } else {
+            setError('Invalid username or password');
+            setLoading(false);
+          }
+        }, 500);
+      };
+
+      return (
+        <div className="login-container">
+          <div className="login-box">
+            <div className="login-logo">🔐</div>
+            <h1 className="login-title">InArt Stock Dashboard</h1>
+            <p className="login-subtitle">Please login to continue</p>
+
+            {error && <div className="error-message">{error}</div>}
+
+            <form onSubmit={handleSubmit}>
+              <div className="form-group">
+                <label className="form-label">Username</label>
+                <input
+                  type="text"
+                  className="form-input"
+                  value={username}
+                  onChange={(e) => setUsername(e.target.value)}
+                  placeholder="Enter username"
+                  required
+                  autoFocus
+                />
+              </div>
+
+              <div className="form-group">
+                <label className="form-label">Password</label>
+                <input
+                  type="password"
+                  className="form-input"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="Enter password"
+                  required
+                />
+              </div>
+
+              <button type="submit" className="login-btn" disabled={loading}>
+                {loading ? 'Logging in...' : 'Login'}
+              </button>
+            </form>
+          </div>
+        </div>
+      );
+    }
+
+    // === MAIN APP ===
     function App() {
+      const [isAuthenticated, setIsAuthenticated] = useState(false);
       const [products, setProducts] = useState([]);
       const [loading, setLoading] = useState(true);
       const [error, setError] = useState(null);
@@ -540,10 +760,30 @@
       const [sortBy, setSortBy] = useState('name');
       const [modalImage, setModalImage] = useState(null);
 
+      // Check if already logged in (session storage)
+      useEffect(() => {
+        const auth = sessionStorage.getItem('isAuthenticated');
+        if (auth === 'true') {
+          setIsAuthenticated(true);
+        }
+      }, []);
+
+      const handleLogin = () => {
+        setIsAuthenticated(true);
+        sessionStorage.setItem('isAuthenticated', 'true');
+      };
+
+      const handleLogout = () => {
+        setIsAuthenticated(false);
+        sessionStorage.removeItem('isAuthenticated');
+      };
+
       // Load data
       useEffect(() => {
-        loadData();
-      }, []);
+        if (isAuthenticated) {
+          loadData();
+        }
+      }, [isAuthenticated]);
 
       async function loadData() {
         setLoading(true);
@@ -562,7 +802,6 @@
 
           const productsByBarcode = {};
 
-          // Build products
           for (let i = 1; i < prodRows.length; i++) {
             const r = prodRows[i];
             if (!r.length || r.every(cell => !cell)) continue;
@@ -586,7 +825,6 @@
             };
           }
 
-          // Aggregate sales
           if (salesRows.length > 1) {
             const idxBarcode = salesHeader["Product Barcode"];
             const idxQty = salesHeader["Quantity"];
@@ -601,7 +839,6 @@
             }
           }
 
-          // Aggregate purchases
           if (purchaseRows.length > 1) {
             const idxBarcode = purchHeader["Product Barcode"];
             const idxQty = purchHeader["Quantity"];
@@ -616,7 +853,6 @@
             }
           }
 
-          // Compute current stock
           const productsList = Object.values(productsByBarcode).map(p => ({
             ...p,
             currentStock: p.initialStock + p.purchases - p.sales
@@ -631,7 +867,10 @@
         }
       }
 
-      // Get unique categories and vendors
+      if (!isAuthenticated) {
+        return <LoginScreen onLogin={handleLogin} />;
+      }
+
       const categories = useMemo(() => {
         const cats = new Set(products.map(p => p.category).filter(Boolean));
         return Array.from(cats).sort();
@@ -642,11 +881,9 @@
         return Array.from(vends).sort();
       }, [products]);
 
-      // Filter and sort products
       const filteredProducts = useMemo(() => {
         let filtered = products;
 
-        // View mode filter
         if (viewMode === 'low') {
           filtered = filtered.filter(p => p.currentStock <= p.restockLevel && p.currentStock > 0);
         } else if (viewMode === 'zero') {
@@ -655,17 +892,14 @@
           filtered = filtered.filter(p => p.sales > 0);
         }
 
-        // Category filter
         if (categoryFilter) {
           filtered = filtered.filter(p => p.category === categoryFilter);
         }
 
-        // Vendor filter
         if (vendorFilter) {
           filtered = filtered.filter(p => p.vendor === vendorFilter);
         }
 
-        // Search filter
         if (searchTerm) {
           const term = searchTerm.toLowerCase();
           filtered = filtered.filter(p => {
@@ -681,7 +915,6 @@
           });
         }
 
-        // Sort
         const sorted = [...filtered];
         if (sortBy === 'name') {
           sorted.sort((a, b) => (a.name || a.barcode).localeCompare(b.name || b.barcode));
@@ -696,7 +929,6 @@
         return sorted;
       }, [products, viewMode, categoryFilter, vendorFilter, searchTerm, sortBy]);
 
-      // Calculate stats
       const stats = useMemo(() => {
         const totalUnits = products.reduce((sum, p) => sum + p.currentStock, 0);
         const lowStock = products.filter(p => p.currentStock > 0 && p.currentStock <= p.restockLevel).length;
@@ -717,20 +949,7 @@
         return (
           <div className="loading-container">
             <div className="spinner"></div>
-            <div className="loading-text">Loading products...</div>
-          </div>
-        );
-      }
-
-      if (error) {
-        return (
-          <div className="empty-state">
-            <div className="empty-icon">⚠️</div>
-            <div className="empty-title">Error Loading Data</div>
-            <div className="empty-text">{error}</div>
-            <button onClick={loadData} style={{marginTop: '1rem', padding: '0.5rem 1rem', borderRadius: '8px', border: 'none', background: 'var(--primary)', color: 'white', cursor: 'pointer'}}>
-              Retry
-            </button>
+            <div style={{color: 'var(--gray-600)', fontSize: '0.875rem'}}>Loading products...</div>
           </div>
         );
       }
@@ -740,7 +959,9 @@
           <header className="header">
             <div className="header-content">
               <h1 className="header-title">📦 InArt Stock</h1>
-              <span className="header-badge">Live · {products.length} SKUs</span>
+              <button className="logout-btn" onClick={handleLogout}>
+                Logout
+              </button>
             </div>
           </header>
 
@@ -809,48 +1030,65 @@
 
             {/* Quick Filters */}
             <div className="quick-filters">
-              <button
-                className={`quick-filter-btn ${viewMode === 'all' ? 'active' : ''}`}
-                onClick={() => setViewMode('all')}
-              >
+              <button className={`quick-filter-btn ${viewMode === 'all' ? 'active' : ''}`} onClick={() => setViewMode('all')}>
                 All Products
               </button>
-              <button
-                className={`quick-filter-btn ${viewMode === 'low' ? 'active' : ''}`}
-                onClick={() => setViewMode('low')}
-              >
+              <button className={`quick-filter-btn ${viewMode === 'low' ? 'active' : ''}`} onClick={() => setViewMode('low')}>
                 Low Stock
               </button>
-              <button
-                className={`quick-filter-btn ${viewMode === 'zero' ? 'active' : ''}`}
-                onClick={() => setViewMode('zero')}
-              >
+              <button className={`quick-filter-btn ${viewMode === 'zero' ? 'active' : ''}`} onClick={() => setViewMode('zero')}>
                 Out of Stock
               </button>
-              <button
-                className={`quick-filter-btn ${viewMode === 'best' ? 'active' : ''}`}
-                onClick={() => setViewMode('best')}
-              >
+              <button className={`quick-filter-btn ${viewMode === 'best' ? 'active' : ''}`} onClick={() => setViewMode('best')}>
                 Best Sellers
               </button>
             </div>
 
-            {/* Products Grid */}
-            {filteredProducts.length === 0 ? (
-              <div className="empty-state">
-                <div className="empty-icon">📦</div>
-                <div className="empty-title">No Products Found</div>
-                <div className="empty-text">Try adjusting your filters</div>
-              </div>
-            ) : (
-              <div className="products-grid">
+            {/* Products Table/Cards */}
+            <div className="table-container">
+              {/* DESKTOP TABLE VIEW */}
+              <table className="product-table">
+                <thead>
+                  <tr>
+                    <th>Image</th>
+                    <th>Product</th>
+                    <th>Category</th>
+                    <th>Vendor</th>
+                    <th>ASIN</th>
+                    <th>SKU</th>
+                    <th>Stock</th>
+                    <th>Cost</th>
+                    <th>Sales</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {filteredProducts.map(product => (
+                    <ProductTableRow
+                      key={product.barcode}
+                      product={product}
+                      onImageClick={setModalImage}
+                    />
+                  ))}
+                </tbody>
+              </table>
+
+              {/* MOBILE CARD VIEW */}
+              <div className="mobile-products">
                 {filteredProducts.map(product => (
-                  <ProductCard
+                  <MobileProductCard
                     key={product.barcode}
                     product={product}
                     onImageClick={setModalImage}
                   />
                 ))}
+              </div>
+            </div>
+
+            {filteredProducts.length === 0 && (
+              <div className="empty-state">
+                <div className="empty-icon">📦</div>
+                <h3>No Products Found</h3>
+                <p style={{color: 'var(--gray-600)', fontSize: '0.875rem'}}>Try adjusting your filters</p>
               </div>
             )}
           </div>
@@ -868,10 +1106,10 @@
       );
     }
 
-    // === PRODUCT CARD COMPONENT ===
-    function ProductCard({ product, onImageClick }) {
+    // === DESKTOP TABLE ROW ===
+    function ProductTableRow({ product, onImageClick }) {
       const [imageError, setImageError] = useState(false);
-
+      
       const stockClass = product.currentStock <= 0 
         ? 'stock-zero' 
         : product.currentStock <= product.restockLevel 
@@ -879,58 +1117,101 @@
           : 'stock-ok';
 
       return (
-        <div className="product-card">
-          <div className="product-card-header">
+        <tr>
+          <td className="table-image-cell">
+            {product.image && !imageError ? (
+              <img
+                src={product.image}
+                alt={product.name}
+                className="table-image"
+                onError={() => setImageError(true)}
+                onClick={() => onImageClick(product.image)}
+                loading="lazy"
+              />
+            ) : (
+              <div className="table-image-placeholder">📦</div>
+            )}
+          </td>
+          <td>
+            <div className="product-name-cell">{product.name || product.barcode}</div>
+          </td>
+          <td>{product.category || '—'}</td>
+          <td>{product.vendor || '—'}</td>
+          <td>{product.asin || '—'}</td>
+          <td>{product.sku || '—'}</td>
+          <td>
+            <span className={`stock-badge ${stockClass}`}>
+              {product.currentStock}
+            </span>
+          </td>
+          <td>{product.cost || '—'}</td>
+          <td>{product.sales}</td>
+        </tr>
+      );
+    }
+
+    // === MOBILE CARD ===
+    function MobileProductCard({ product, onImageClick }) {
+      const [imageError, setImageError] = useState(false);
+      
+      const stockClass = product.currentStock <= 0 
+        ? 'stock-zero' 
+        : product.currentStock <= product.restockLevel 
+          ? 'stock-low' 
+          : 'stock-ok';
+
+      return (
+        <div className="mobile-product-card">
+          <div className="mobile-card-header">
             <div 
-              className="product-image-container"
+              className="mobile-image-container"
               onClick={() => product.image && !imageError && onImageClick(product.image)}
-              style={{ cursor: product.image && !imageError ? 'pointer' : 'default' }}
             >
               {product.image && !imageError ? (
                 <img
                   src={product.image}
                   alt={product.name}
-                  className="product-image"
+                  className="mobile-image"
                   onError={() => setImageError(true)}
                   loading="lazy"
                 />
               ) : (
-                <div className="product-image-placeholder">📦</div>
+                <div className="mobile-image-placeholder">📦</div>
               )}
             </div>
-            <div className="product-info">
-              <div className="product-name">{product.name || product.barcode}</div>
-              <div className="product-category">{product.category}</div>
-              <span className={`product-stock-badge ${stockClass}`}>
+            <div className="mobile-card-info">
+              <div className="mobile-product-name">{product.name || product.barcode}</div>
+              <div className="mobile-product-category">{product.category}</div>
+              <span className={`stock-badge ${stockClass}`}>
                 {product.currentStock} in stock
               </span>
             </div>
           </div>
-          <div className="product-card-body">
-            <div className="product-details">
-              <div className="detail-item">
-                <div className="detail-label">Vendor</div>
-                <div className="detail-value">{product.vendor || '—'}</div>
+          <div className="mobile-card-body">
+            <div className="mobile-details-grid">
+              <div className="mobile-detail-item">
+                <div className="mobile-detail-label">Vendor</div>
+                <div className="mobile-detail-value">{product.vendor || '—'}</div>
               </div>
-              <div className="detail-item">
-                <div className="detail-label">Barcode</div>
-                <div className="detail-value">{product.barcode}</div>
+              <div className="mobile-detail-item">
+                <div className="mobile-detail-label">Cost</div>
+                <div className="mobile-detail-value">{product.cost || '—'}</div>
               </div>
-              <div className="detail-item">
-                <div className="detail-label">ASIN</div>
-                <div className="detail-value">{product.asin || '—'}</div>
+              <div className="mobile-detail-item">
+                <div className="mobile-detail-label">ASIN</div>
+                <div className="mobile-detail-value">{product.asin || '—'}</div>
               </div>
-              <div className="detail-item">
-                <div className="detail-label">SKU</div>
-                <div className="detail-value">{product.sku || '—'}</div>
+              <div className="mobile-detail-item">
+                <div className="mobile-detail-label">SKU</div>
+                <div className="mobile-detail-value">{product.sku || '—'}</div>
               </div>
-              <div className="detail-item">
-                <div className="detail-label">Cost</div>
-                <div className="detail-value">{product.cost || '—'}</div>
+              <div className="mobile-detail-item">
+                <div className="mobile-detail-label">Barcode</div>
+                <div className="mobile-detail-value">{product.barcode}</div>
               </div>
-              <div className="detail-item">
-                <div className="detail-label">Sales</div>
-                <div className="detail-value">{product.sales}</div>
+              <div className="mobile-detail-item">
+                <div className="mobile-detail-label">Sales</div>
+                <div className="mobile-detail-value">{product.sales}</div>
               </div>
             </div>
           </div>
@@ -938,7 +1219,7 @@
       );
     }
 
-    // === RENDER APP ===
+    // === RENDER ===
     ReactDOM.render(<App />, document.getElementById('root'));
   </script>
 </body>
