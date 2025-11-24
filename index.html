@@ -1,546 +1,945 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8" />
-    <title>InArt Stock Dashboard (Advanced)</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
-    <style>
-        body {
-            font-family: 'Inter', sans-serif;
-            background-color: #f7f9fb;
-            color: #1f2937;
-        }
-        /* Custom styles for responsiveness and clean look */
-        .stock-badge {
-            padding: 2px 8px;
-            border-radius: 999px;
-            font-weight: 600;
-            font-size: 0.7rem;
-            display: inline-block;
-            white-space: nowrap;
-        }
-        .stock-ok { background: #dcfce7; color: #15803d; }
-        .stock-low { background: #fef3c7; color: #b45309; } /* Warning yellow */
-        .stock-zero { background: #fee2e2; color: #b91c1c; } /* Danger red */
-
-        /* Ensures the table header stays visible on scroll (desktop view) */
-        @media (min-width: 768px) {
-            .sticky-header th {
-                position: sticky;
-                top: 0;
-                z-index: 10;
-            }
-        }
-        
-        /* Utility for image placeholders */
-        .no-img {
-            width: 50px;
-            height: 50px;
-            border-radius: 6px;
-            background: #e5e7eb;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 20px;
-            color: #9ca3af;
-        }
-    </style>
-</head>
-<body class="min-h-screen">
-<header class="bg-gray-900 text-white p-4 flex items-center justify-between shadow-lg flex-wrap gap-2">
-    <h1 class="text-xl font-bold">InArt Inventory Dashboard</h1>
-    <span class="bg-green-500 text-xs font-semibold px-3 py-1 rounded-full shadow">Live Data</span>
-</header>
-
-<main class="p-4 md:p-6 max-w-7xl mx-auto">
-    <!-- Summary Cards -->
-    <section class="summary grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-        <div class="bg-white rounded-xl p-4 shadow-md transition duration-300 hover:shadow-lg">
-            <div class="text-xs font-semibold uppercase text-gray-500 mb-1">Total SKUs</div>
-            <div class="text-2xl font-bold text-gray-900" id="statTotalSkus">–</div>
-            <div class="text-xs text-gray-400 mt-1" id="statTotalCategories">–</div>
-        </div>
-        <div class="bg-white rounded-xl p-4 shadow-md transition duration-300 hover:shadow-lg">
-            <div class="text-xs font-semibold uppercase text-gray-500 mb-1">Units in Stock</div>
-            <div class="text-2xl font-bold text-green-600" id="statUnitsStock">–</div>
-            <div class="text-xs text-gray-400 mt-1" id="statLowStock">–</div>
-        </div>
-        <div class="bg-white rounded-xl p-4 shadow-md transition duration-300 hover:shadow-lg col-span-2 md:col-span-1">
-            <div class="text-xs font-semibold uppercase text-gray-500 mb-1">Best Seller (Qty)</div>
-            <div class="text-xl font-bold text-gray-800 truncate" id="statBestSeller">–</div>
-            <div class="text-xs text-gray-400 mt-1" id="statBestSellerQty">–</div>
-        </div>
-    </section>
-
-    <!-- Filters and Controls -->
-    <section class="controls grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 mb-4">
-        <input type="text" id="searchInput" placeholder="Search by name, code, ASIN, SKU…" 
-               class="p-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 text-sm"/>
-        
-        <select id="categoryFilter" class="p-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 text-sm">
-            <option value="">All categories</option>
-        </select>
-        <select id="vendorFilter" class="p-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 text-sm">
-            <option value="">All vendors</option>
-        </select>
-        <select id="sortMode" class="p-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 text-sm">
-            <option value="name">Sort: Product name (A-Z)</option>
-            <option value="stockDesc">Sort: Stock high → low</option>
-            <option value="stockAsc">Sort: Stock low → high</option>
-            <option value="salesDesc">Sort: Best sellers (Qty)</option>
-        </select>
-    </section>
-
-    <!-- View Pills -->
-    <section class="flex flex-wrap gap-2 mb-6">
-        <button class="pill active px-4 py-1.5 text-sm rounded-full border transition duration-150" data-view="all">All products</button>
-        <button class="pill px-4 py-1.5 text-sm rounded-full border transition duration-150" data-view="low">Low stock</button>
-        <button class="pill px-4 py-1.5 text-sm rounded-full border transition duration-150" data-view="zero">Out of stock</button>
-        <button class="pill px-4 py-1.5 text-sm rounded-full border transition duration-150" data-view="best">Best sellers</button>
-    </section>
-
-    <!-- Mobile Card List View (Default) -->
-    <section id="cardListView" class="block md:hidden space-y-3">
-        <!-- Cards will be injected here -->
-        <div class="text-center p-4 text-gray-500">Loading data...</div>
-    </section>
-
-
-    <!-- Desktop Table View (Hidden on mobile) -->
-    <section class="hidden md:block overflow-x-auto bg-white rounded-xl shadow-lg">
-        <table class="min-w-full divide-y divide-gray-200 text-sm">
-            <thead class="bg-gray-800 text-white sticky-header">
-                <tr>
-                    <th class="px-3 py-2 text-left text-xs font-medium uppercase tracking-wider w-16">Image</th>
-                    <th class="px-3 py-2 text-left text-xs font-medium uppercase tracking-wider">Product</th>
-                    <th class="px-3 py-2 text-left text-xs font-medium uppercase tracking-wider">Barcode</th>
-                    <th class="px-3 py-2 text-left text-xs font-medium uppercase tracking-wider">Category / Vendor</th>
-                    <th class="px-3 py-2 text-left text-xs font-medium uppercase tracking-wider">ASIN / SKU</th>
-                    <th class="px-3 py-2 text-left text-xs font-medium uppercase tracking-wider">Cost</th>
-                    <th class="px-3 py-2 text-left text-xs font-medium uppercase tracking-wider">Stock</th>
-                    <th class="px-3 py-2 text-left text-xs font-medium uppercase tracking-wider">Purchases</th>
-                    <th class="px-3 py-2 text-left text-xs font-medium uppercase tracking-wider">Sales</th>
-                </tr>
-            </thead>
-            <tbody id="tableBody" class="bg-white divide-y divide-gray-200">
-                <!-- Rows will be injected here -->
-            </tbody>
-        </table>
-    </section>
-</main>
-
-<script>
-    // === CONFIG: your CSV endpoints ===
-    const PRODUCT_CSV =
-        "https://docs.google.com/spreadsheets/d/e/2PACX-1vTigsGhlpnrwXI_q8RklVhfc7cD8dezLyLS9fXHN842Tk6dM430UVo5UTMjFKV08P3f0pKNtsadi-t3/pub?gid=2104089495&single=true&output=csv";
-    const SALES_CSV =
-        "https://docs.google.com/spreadsheets/d/e/2PACX-1vTigsGhlpnrwXI_q8RklVhfc7cD8dezLyLS9fXHN842Tk6dM430UVo5UTMjFKV08P3f0pKNtsadi-t3/pub?gid=438476529&single=true&output=csv";
-    const PURCHASES_CSV =
-        "https://docs.google.com/spreadsheets/d/e/2PACX-1vTigsGhlpnrwXI_q8RklVhfc7cD8dezLyLS9fXHN842Tk6dM430UVo5UTMjFKV08P3f0pKNtsadi-t3/pub?gid=1808784762&single=true&output=csv";
-
-    // Simple CSV parser
-    function parseCSV(text) {
-        const lines = text.trim().split(/\r?\n/);
-        return lines.map(line => {
-            const result = [];
-            let current = '';
-            let inQuotes = false;
-            for (let i = 0; i < line.length; i++) {
-                const char = line[i];
-                if (char === '"' && line[i + 1] === '"') {
-                    current += '"';
-                    i++;
-                } else if (char === '"') {
-                    inQuotes = !inQuotes;
-                } else if (char === ',' && !inQuotes) {
-                    result.push(current);
-                    current = '';
-                } else {
-                    current += char;
-                }
-            }
-            result.push(current);
-            return result.map(s => s.trim()); // Trim cells after parsing
-        });
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>InArt Stock Dashboard - Modern</title>
+  
+  <!-- React & Babel for JSX -->
+  <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
     }
 
-    async function fetchCSV(url) {
-        const res = await fetch(url);
-        if (!res.ok) throw new Error("Failed to fetch " + url);
-        const txt = await res.text();
-        return parseCSV(txt);
+    :root {
+      --primary: #2563eb;
+      --primary-dark: #1e40af;
+      --success: #10b981;
+      --warning: #f59e0b;
+      --danger: #ef4444;
+      --dark: #111827;
+      --gray-50: #f9fafb;
+      --gray-100: #f3f4f6;
+      --gray-200: #e5e7eb;
+      --gray-300: #d1d5db;
+      --gray-600: #4b5563;
+      --gray-700: #374151;
+      --gray-800: #1f2937;
+      --gray-900: #111827;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', sans-serif;
+      background: var(--gray-50);
+      color: var(--gray-900);
+      line-height: 1.5;
+    }
+
+    /* === HEADER === */
+    .header {
+      background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+      color: white;
+      padding: 1rem;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .header-content {
+      max-width: 100%;
+      margin: 0 auto;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 1rem;
+      flex-wrap: wrap;
+    }
+
+    .header-title {
+      font-size: 1.5rem;
+      font-weight: 700;
+    }
+
+    .header-badge {
+      background: rgba(255, 255, 255, 0.2);
+      padding: 0.25rem 0.75rem;
+      border-radius: 999px;
+      font-size: 0.875rem;
+      backdrop-filter: blur(10px);
+    }
+
+    /* === MAIN CONTAINER === */
+    .container {
+      width: 100%;
+      max-width: 100%;
+      margin: 0 auto;
+      padding: 1rem;
+    }
+
+    /* === STATS CARDS === */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .stat-card {
+      background: white;
+      padding: 1rem;
+      border-radius: 12px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+      border-left: 4px solid var(--primary);
+    }
+
+    .stat-label {
+      font-size: 0.75rem;
+      color: var(--gray-600);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 0.25rem;
+    }
+
+    .stat-value {
+      font-size: 1.75rem;
+      font-weight: 700;
+      color: var(--gray-900);
+    }
+
+    .stat-sub {
+      font-size: 0.75rem;
+      color: var(--gray-600);
+      margin-top: 0.25rem;
+    }
+
+    /* === SEARCH & FILTERS === */
+    .filters {
+      background: white;
+      padding: 1rem;
+      border-radius: 12px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+      margin-bottom: 1.5rem;
+    }
+
+    .search-box {
+      position: relative;
+      margin-bottom: 1rem;
+    }
+
+    .search-input {
+      width: 100%;
+      padding: 0.75rem 1rem 0.75rem 2.5rem;
+      border: 2px solid var(--gray-200);
+      border-radius: 8px;
+      font-size: 1rem;
+      transition: all 0.2s;
+    }
+
+    .search-input:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+    }
+
+    .search-icon {
+      position: absolute;
+      left: 0.75rem;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--gray-600);
+    }
+
+    .filter-row {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap: 0.75rem;
+    }
+
+    .filter-select {
+      padding: 0.75rem;
+      border: 2px solid var(--gray-200);
+      border-radius: 8px;
+      font-size: 0.875rem;
+      background: white;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .filter-select:focus {
+      outline: none;
+      border-color: var(--primary);
+    }
+
+    /* === QUICK FILTERS === */
+    .quick-filters {
+      display: flex;
+      gap: 0.5rem;
+      margin-bottom: 1.5rem;
+      overflow-x: auto;
+      padding-bottom: 0.5rem;
+    }
+
+    .quick-filter-btn {
+      padding: 0.5rem 1rem;
+      border: 2px solid var(--gray-300);
+      border-radius: 999px;
+      background: white;
+      font-size: 0.875rem;
+      font-weight: 500;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: all 0.2s;
+    }
+
+    .quick-filter-btn:hover {
+      border-color: var(--primary);
+      color: var(--primary);
+    }
+
+    .quick-filter-btn.active {
+      background: var(--primary);
+      color: white;
+      border-color: var(--primary);
+    }
+
+    /* === PRODUCT GRID (Mobile First) === */
+    .products-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 1rem;
+    }
+
+    .product-card {
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+      overflow: hidden;
+      transition: transform 0.2s, box-shadow 0.2s;
+      cursor: pointer;
+    }
+
+    .product-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 16px rgba(0, 0, 0, 0.12);
+    }
+
+    .product-card-header {
+      display: flex;
+      gap: 1rem;
+      padding: 1rem;
+      border-bottom: 1px solid var(--gray-200);
+    }
+
+    .product-image-container {
+      flex-shrink: 0;
+      width: 100px;
+      height: 100px;
+      border-radius: 8px;
+      overflow: hidden;
+      background: var(--gray-100);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .product-image {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .product-image-placeholder {
+      font-size: 2.5rem;
+      color: var(--gray-400);
+    }
+
+    .product-info {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .product-name {
+      font-size: 1rem;
+      font-weight: 600;
+      color: var(--gray-900);
+      margin-bottom: 0.25rem;
+      line-height: 1.3;
+    }
+
+    .product-category {
+      font-size: 0.875rem;
+      color: var(--gray-600);
+      margin-bottom: 0.5rem;
+    }
+
+    .product-stock-badge {
+      display: inline-block;
+      padding: 0.25rem 0.75rem;
+      border-radius: 999px;
+      font-size: 0.875rem;
+      font-weight: 600;
+    }
+
+    .stock-ok {
+      background: #d1fae5;
+      color: #065f46;
+    }
+
+    .stock-low {
+      background: #fed7aa;
+      color: #92400e;
+    }
+
+    .stock-zero {
+      background: #fecaca;
+      color: #991b1b;
+    }
+
+    .product-card-body {
+      padding: 1rem;
+    }
+
+    .product-details {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 0.75rem;
+    }
+
+    .detail-item {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .detail-label {
+      font-size: 0.75rem;
+      color: var(--gray-600);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 0.25rem;
+    }
+
+    .detail-value {
+      font-size: 0.875rem;
+      font-weight: 500;
+      color: var(--gray-900);
+      word-break: break-all;
+    }
+
+    /* === LOADING === */
+    .loading-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 3rem;
+      gap: 1rem;
+    }
+
+    .spinner {
+      width: 50px;
+      height: 50px;
+      border: 4px solid var(--gray-200);
+      border-top-color: var(--primary);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    .loading-text {
+      color: var(--gray-600);
+      font-size: 0.875rem;
+    }
+
+    /* === EMPTY STATE === */
+    .empty-state {
+      text-align: center;
+      padding: 3rem 1rem;
+    }
+
+    .empty-icon {
+      font-size: 4rem;
+      margin-bottom: 1rem;
+      opacity: 0.5;
+    }
+
+    .empty-title {
+      font-size: 1.25rem;
+      font-weight: 600;
+      color: var(--gray-900);
+      margin-bottom: 0.5rem;
+    }
+
+    .empty-text {
+      color: var(--gray-600);
+      font-size: 0.875rem;
+    }
+
+    /* === IMAGE MODAL === */
+    .modal-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.8);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+      padding: 1rem;
+    }
+
+    .modal-content {
+      max-width: 90vw;
+      max-height: 90vh;
+      position: relative;
+    }
+
+    .modal-image {
+      max-width: 100%;
+      max-height: 90vh;
+      border-radius: 8px;
+    }
+
+    .modal-close {
+      position: absolute;
+      top: -2.5rem;
+      right: 0;
+      background: white;
+      border: none;
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      font-size: 1.5rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    /* === DESKTOP RESPONSIVE === */
+    @media (min-width: 768px) {
+      .container {
+        padding: 2rem;
+      }
+
+      .header-title {
+        font-size: 2rem;
+      }
+
+      .products-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+
+      .product-image-container {
+        width: 120px;
+        height: 120px;
+      }
+
+      .search-input {
+        font-size: 1rem;
+      }
+    }
+
+    @media (min-width: 1024px) {
+      .products-grid {
+        grid-template-columns: repeat(3, 1fr);
+      }
+
+      .stats-grid {
+        grid-template-columns: repeat(4, 1fr);
+      }
+    }
+
+    @media (min-width: 1280px) {
+      .products-grid {
+        grid-template-columns: repeat(4, 1fr);
+      }
+    }
+
+    @media (min-width: 1536px) {
+      .products-grid {
+        grid-template-columns: repeat(5, 1fr);
+      }
+    }
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+
+  <script type="text/babel">
+    const { useState, useEffect, useMemo } = React;
+
+    // === CONFIGURATION ===
+    const CONFIG = {
+      PRODUCT_CSV: "https://docs.google.com/spreadsheets/d/e/2PACX-1vTigsGhlpnrwXI_q8RklVhfc7cD8dezLyLS9fXHN842Tk6dM430UVo5UTMjFKV08P3f0pKNtsadi-t3/pub?gid=2104089495&single=true&output=csv",
+      SALES_CSV: "https://docs.google.com/spreadsheets/d/e/2PACX-1vTigsGhlpnrwXI_q8RklVhfc7cD8dezLyLS9fXHN842Tk6dM430UVo5UTMjFKV08P3f0pKNtsadi-t3/pub?gid=438476529&single=true&output=csv",
+      PURCHASES_CSV: "https://docs.google.com/spreadsheets/d/e/2PACX-1vTigsGhlpnrwXI_q8RklVhfc7cD8dezLyLS9fXHN842Tk6dM430UVo5UTMjFKV08P3f0pKNtsadi-t3/pub?gid=1808784762&single=true&output=csv"
+    };
+
+    // === UTILITY FUNCTIONS ===
+    function parseCSV(text) {
+      const lines = text.trim().split(/\r?\n/);
+      return lines.map(line => {
+        const result = [];
+        let current = '';
+        let inQuotes = false;
+        for (let i = 0; i < line.length; i++) {
+          const char = line[i];
+          if (char === '"' && line[i + 1] === '"') {
+            current += '"';
+            i++;
+          } else if (char === '"') {
+            inQuotes = !inQuotes;
+          } else if (char === ',' && !inQuotes) {
+            result.push(current);
+            current = '';
+          } else {
+            current += char;
+          }
+        }
+        result.push(current);
+        return result;
+      });
     }
 
     function indexHeaders(row) {
-        const map = {};
-        row.forEach((h, idx) => {
-            map[h] = idx;
-        });
-        return map;
+      const map = {};
+      row.forEach((h, idx) => {
+        map[h.trim()] = idx;
+      });
+      return map;
     }
 
-    const state = {
-        productsByBarcode: {},
-        productsList: [],
-        viewMode: "all"
-    };
-
-    async function loadData() {
-        try {
-            const [prodRows, salesRows, purchaseRows] = await Promise.all([
-                fetchCSV(PRODUCT_CSV),
-                fetchCSV(SALES_CSV),
-                fetchCSV(PURCHASES_CSV)
-            ]);
-
-            const prodHeader = indexHeaders(prodRows[0]);
-            const salesHeader = indexHeaders(salesRows[0] || []);
-            const purchHeader = indexHeaders(purchaseRows[0] || []);
-
-            // Clear existing data
-            state.productsByBarcode = {};
-            state.productsList = [];
-
-            // Build products
-            for (let i = 1; i < prodRows.length; i++) {
-                const r = prodRows[i];
-                if (!r.length || r.every(cell => !cell)) continue;
-                
-                const barcode = r[prodHeader["Product Barcode"]] || "";
-                if (!barcode) continue;
-                
-                const imageUrl = r[prodHeader["Image_URL"]]
-                              || r[prodHeader["Image"]]
-                              || r[prodHeader["AMAZON IMAGE"]]
-                              || "";
-                
-                const p = {
-                    barcode,
-                    name: r[prodHeader["Product"]] || "",
-                    category: r[prodHeader["Category"]] || "",
-                    image: imageUrl,
-                    initialStock: Number(r[prodHeader["Initial Stock"]] || 0),
-                    restockLevel: Number(r[prodHeader["Restock Level"]] || 0),
-                    cost: r[prodHeader["Cost"]] || "",
-                    vendor: r[prodHeader["Vendor"]] || "",
-                    asin: r[prodHeader["AMAZON ASIN INART"]] || "",
-                    sku: r[prodHeader["AMAZON SKU INART"]] || "",
-                    purchases: 0,
-                    sales: 0,
-                    currentStock: 0
-                };
-                state.productsByBarcode[barcode] = p;
-            }
-
-            // Aggregate sales
-            if (salesRows.length > 1) {
-                const idxBarcode = salesHeader["Product Barcode"];
-                const idxQty = salesHeader["Quantity"];
-                for (let i = 1; i < salesRows.length; i++) {
-                    const r = salesRows[i];
-                    if (!r.length || r.every(cell => !cell)) continue;
-                    const bc = r[idxBarcode] || "";
-                    const qty = Number(r[idxQty] || 0);
-                    if (state.productsByBarcode[bc]) {
-                        state.productsByBarcode[bc].sales += qty;
-                    }
-                }
-            }
-
-            // Aggregate purchases
-            if (purchaseRows.length > 1) {
-                const idxBarcode = purchHeader["Product Barcode"];
-                const idxQty = purchHeader["Quantity"];
-                for (let i = 1; i < purchaseRows.length; i++) {
-                    const r = purchaseRows[i];
-                    if (!r.length || r.every(cell => !cell)) continue;
-                    const bc = r[idxBarcode] || "";
-                    const qty = Number(r[idxQty] || 0);
-                    if (state.productsByBarcode[bc]) {
-                        state.productsByBarcode[bc].purchases += qty;
-                    }
-                }
-            }
-
-            // Compute current stock
-            state.productsList = Object.values(state.productsByBarcode);
-            state.productsList.forEach(p => {
-                p.currentStock = p.initialStock + p.purchases - p.sales;
-            });
-
-            populateFilters();
-            updateSummary();
-            renderTables();
-            
-        } catch (err) {
-            console.error("Load error:", err);
-            // Replace alert with a temporary message box if possible, but for simplicity here, we stick to console/basic text.
-            document.getElementById("tableBody").innerHTML = '<tr><td colspan="9" class="text-center p-4 text-red-500">Error loading data. Check console for details.</td></tr>';
-            document.getElementById("cardListView").innerHTML = '<div class="text-center p-4 text-red-500">Error loading data. Check console for details.</div>';
-        }
+    async function fetchCSV(url) {
+      const res = await fetch(url);
+      if (!res.ok) throw new Error(`Failed to fetch ${url}`);
+      const txt = await res.text();
+      return parseCSV(txt);
     }
 
-    function populateFilters() {
-        const categorySet = new Set();
-        const vendorSet = new Set();
-        state.productsList.forEach(p => {
-            if (p.category) categorySet.add(p.category);
-            if (p.vendor) vendorSet.add(p.vendor);
-        });
-        
-        const categoryFilter = document.getElementById("categoryFilter");
-        const vendorFilter = document.getElementById("vendorFilter");
+    // === MAIN APP COMPONENT ===
+    function App() {
+      const [products, setProducts] = useState([]);
+      const [loading, setLoading] = useState(true);
+      const [error, setError] = useState(null);
+      const [searchTerm, setSearchTerm] = useState('');
+      const [categoryFilter, setCategoryFilter] = useState('');
+      const [vendorFilter, setVendorFilter] = useState('');
+      const [viewMode, setViewMode] = useState('all');
+      const [sortBy, setSortBy] = useState('name');
+      const [modalImage, setModalImage] = useState(null);
 
-        categoryFilter.innerHTML = '<option value="">All categories</option>';
-        vendorFilter.innerHTML = '<option value="">All vendors</option>';
-
-        [...categorySet].sort().forEach(cat => {
-            const opt = document.createElement("option");
-            opt.value = cat;
-            opt.textContent = cat;
-            categoryFilter.appendChild(opt);
-        });
-        
-        [...vendorSet].sort().forEach(v => {
-            const opt = document.createElement("option");
-            opt.value = v;
-            opt.textContent = v;
-            vendorFilter.appendChild(opt);
-        });
-    }
-
-    function updateSummary() {
-        const totalSkus = state.productsList.length;
-        const categories = new Set(state.productsList.map(p => p.category).filter(Boolean));
-        const totalUnits = state.productsList.reduce((sum, p) => sum + (p.currentStock || 0), 0);
-        const lowStockCount = state.productsList.filter(p => 
-            p.currentStock > 0 && p.currentStock <= p.restockLevel
-        ).length;
-        const best = state.productsList.slice().sort((a, b) => (b.sales || 0) - (a.sales || 0))[0];
-
-        document.getElementById("statTotalSkus").textContent = totalSkus;
-        document.getElementById("statTotalCategories").textContent =
-            categories.size + " unique categories";
-
-        document.getElementById("statUnitsStock").textContent = totalUnits.toLocaleString();
-        document.getElementById("statLowStock").textContent =
-            lowStockCount + " low/below restock";
-
-        if (best && best.sales > 0) {
-            const name = best.name || best.barcode;
-            document.getElementById("statBestSeller").textContent = name;
-            document.getElementById("statBestSellerQty").textContent =
-                best.sales.toLocaleString() + " units sold";
-        } else {
-            document.getElementById("statBestSeller").textContent = "N/A";
-            document.getElementById("statBestSellerQty").textContent = "No sales yet";
-        }
-    }
-
-    function getFilteredProducts() {
-        const search = document.getElementById("searchInput").value.trim().toLowerCase();
-        const category = document.getElementById("categoryFilter").value;
-        const vendor = document.getElementById("vendorFilter").value;
-        const sortMode = document.getElementById("sortMode").value;
-
-        let list = state.productsList.slice();
-
-        // View Mode Filter
-        if (state.viewMode === "low") {
-            list = list.filter(p => p.currentStock <= p.restockLevel && p.currentStock > 0);
-        } else if (state.viewMode === "zero") {
-            list = list.filter(p => p.currentStock <= 0);
-        } else if (state.viewMode === "best") {
-            list = list.filter(p => p.sales > 0);
-        }
-
-        // Dropdown Filters
-        if (category) {
-            list = list.filter(p => p.category === category);
-        }
-        if (vendor) {
-            list = list.filter(p => p.vendor === vendor);
-        }
-        
-        // Search Filter
-        if (search) {
-            list = list.filter(p => {
-                const s = [
-                    p.name,
-                    p.barcode,
-                    p.category,
-                    p.vendor,
-                    p.asin,
-                    p.sku
-                ].join(" ").toLowerCase();
-                return s.includes(search);
-            });
-        }
-
-        // Sorting
-        if (sortMode === "name") {
-            list.sort((a, b) => (a.name || a.barcode).localeCompare(b.name || b.barcode));
-        } else if (sortMode === "stockDesc") {
-            list.sort((a, b) => (b.currentStock || 0) - (a.currentStock || 0));
-        } else if (sortMode === "stockAsc") {
-            list.sort((a, b) => (a.currentStock || 0) - (b.currentStock || 0));
-        } else if (sortMode === "salesDesc") {
-            list.sort((a, b) => (b.sales || 0) - (a.sales || 0));
-        }
-
-        return list;
-    }
-
-    function getStockStatus(p) {
-        let cls = "stock-ok";
-        let label = "OK";
-        if (p.currentStock <= 0) {
-            cls = "stock-zero";
-            label = "OUT";
-        } else if (p.currentStock <= p.restockLevel) {
-            cls = "stock-low";
-            label = "LOW";
-        }
-        return { cls, label };
-    }
-
-    function createCardHtml(p) {
-        const { cls, label } = getStockStatus(p);
-
-        const imageHtml = p.image && p.image.startsWith("http")
-            ? `<img src="${p.image}" alt="${p.name || p.barcode}" 
-                    class="w-16 h-16 rounded-lg object-cover border border-gray-200 bg-gray-50"
-                    onerror="this.onerror=null; this.src='https://placehold.co/64x64/f3f4f6/9ca3af?text=N/A'" />`
-            : `<div class="no-img w-16 h-16 text-3xl">🖼️</div>`;
-
-        return `
-            <div class="bg-white rounded-xl shadow-md p-3 flex gap-3 items-center transition duration-150 hover:shadow-lg">
-                <div class="flex-shrink-0">${imageHtml}</div>
-                <div class="flex-grow min-w-0">
-                    <div class="flex items-center justify-between mb-1">
-                        <div class="font-semibold truncate text-gray-800">${p.name || "Unnamed Product"}</div>
-                        <span class="text-xs font-bold text-gray-600 ${cls} px-2 py-0.5 rounded">${p.currentStock}</span>
-                    </div>
-                    
-                    <div class="grid grid-cols-2 gap-x-2 text-xs text-gray-500 mt-1">
-                        <!-- Category / Vendor (PRIORITIZED FIELD 1/2) -->
-                        <div class="truncate">
-                            <span class="font-medium text-gray-700">Category:</span> ${p.category || '–'}
-                        </div>
-                        <div class="truncate text-right">
-                             <span class="font-medium text-gray-700">Vendor:</span> ${p.vendor || '–'}
-                        </div>
-                        <!-- ASIN / SKU (PRIORITIZED FIELD 3/4) -->
-                        <div class="truncate">
-                            <span class="font-medium text-gray-700">ASIN:</span> ${p.asin || '–'}
-                        </div>
-                        <div class="truncate text-right">
-                            <span class="font-medium text-gray-700">SKU:</span> ${p.sku || '–'}
-                        </div>
-                    </div>
-                </div>
-            </div>
-        `;
-    }
-
-    function renderTables() {
-        const list = getFilteredProducts();
-        const tbody = document.getElementById("tableBody");
-        const cardView = document.getElementById("cardListView");
-        
-        tbody.innerHTML = "";
-        cardView.innerHTML = "";
-
-        if (list.length === 0) {
-            const noDataHtml = '<td colspan="9" class="text-center p-4 text-gray-500">No products match your filters.</td>';
-            tbody.innerHTML = `<tr>${noDataHtml}</tr>`;
-            cardView.innerHTML = '<div class="text-center p-4 text-gray-500">No products match your filters.</div>';
-            return;
-        }
-
-        // 1. Render Table Rows (Desktop)
-        list.forEach(p => {
-            const { cls } = getStockStatus(p);
-            const tr = document.createElement("tr");
-            tr.className = "hover:bg-gray-50 transition duration-100";
-            
-            // Image Cell (PRIORITIZED FIELD 1)
-            const imageHtml = p.image && p.image.startsWith("http")
-                ? `<img src="${p.image}" alt="${p.name || p.barcode}" 
-                       class="w-12 h-12 rounded-lg object-cover border border-gray-200 bg-gray-50"
-                       onerror="this.onerror=null; this.src='https://placehold.co/48x48/f3f4f6/9ca3af?text=N/A'" />`
-                : `<div class="no-img w-12 h-12 text-2xl">🖼️</div>`;
-
-            tr.innerHTML = `
-                <td class="px-3 py-2 whitespace-nowrap">${imageHtml}</td>
-                <td class="px-3 py-2">
-                    <div class="font-medium text-gray-900">${p.name || "–"}</div>
-                    <div class="text-gray-500 text-xs">${p.barcode}</div>
-                </td>
-                <td class="px-3 py-2 whitespace-nowrap text-gray-600">${p.barcode}</td>
-                <td class="px-3 py-2 whitespace-nowrap">
-                    <div class="font-medium text-gray-700">${p.category || '–'}</div>
-                    <div class="text-gray-500 text-xs">Vendor: ${p.vendor || '–'}</div>
-                </td>
-                <td class="px-3 py-2 whitespace-nowrap">
-                    <div class="font-medium text-gray-700">${p.asin || '–'}</div>
-                    <div class="text-gray-500 text-xs">${p.sku || '–'}</div>
-                </td>
-                <td class="px-3 py-2 whitespace-nowrap text-gray-600">${p.cost || '–'}</td>
-                <td class="px-3 py-2 whitespace-nowrap">
-                    <span class="stock-badge ${cls}">${p.currentStock}</span>
-                    ${p.restockLevel ? `<div class="text-gray-500 text-xs">Restock: ${p.restockLevel}</div>` : ''}
-                </td>
-                <td class="px-3 py-2 whitespace-nowrap text-gray-600">${p.purchases || 0}</td>
-                <td class="px-3 py-2 whitespace-nowrap text-gray-600">${p.sales || 0}</td>
-            `;
-            tbody.appendChild(tr);
-        });
-
-        // 2. Render Card List (Mobile)
-        const cardHtml = list.map(p => createCardHtml(p)).join('');
-        cardView.innerHTML = cardHtml;
-    }
-
-    // Event wiring
-    document.addEventListener("DOMContentLoaded", () => {
-        // Initial load
+      // Load data
+      useEffect(() => {
         loadData();
+      }, []);
 
-        // Attach event listeners to all filter/sort controls to trigger a re-render
-        const controls = [
-            document.getElementById("searchInput"),
-            document.getElementById("categoryFilter"),
-            document.getElementById("vendorFilter"),
-            document.getElementById("sortMode")
-        ];
-        
-        controls.forEach(control => {
-            control.addEventListener(control.tagName === 'INPUT' ? "input" : "change", renderTables);
-        });
+      async function loadData() {
+        setLoading(true);
+        setError(null);
 
-        // Pill group for view mode
-        document.querySelectorAll(".pill").forEach(btn => {
-            btn.classList.add("bg-white", "text-gray-700", "border-gray-300", "shadow-sm");
-            btn.addEventListener("click", () => {
-                document.querySelectorAll(".pill").forEach(b => {
-                    b.classList.remove("active", "bg-gray-800", "text-white", "border-gray-800");
-                    b.classList.add("bg-white", "text-gray-700", "border-gray-300");
-                });
-                btn.classList.add("active", "bg-gray-800", "text-white", "border-gray-800");
-                btn.classList.remove("bg-white", "text-gray-700", "border-gray-300");
-                state.viewMode = btn.dataset.view;
-                renderTables();
-            });
-        });
+        try {
+          const [prodRows, salesRows, purchaseRows] = await Promise.all([
+            fetchCSV(CONFIG.PRODUCT_CSV),
+            fetchCSV(CONFIG.SALES_CSV),
+            fetchCSV(CONFIG.PURCHASES_CSV)
+          ]);
 
-        // Initialize the 'All products' pill style
-        document.querySelector('.pill.active').classList.add("bg-gray-800", "text-white", "border-gray-800");
-        document.querySelector('.pill.active').classList.remove("bg-white", "text-gray-700", "border-gray-300");
+          const prodHeader = indexHeaders(prodRows[0]);
+          const salesHeader = indexHeaders(salesRows[0] || []);
+          const purchHeader = indexHeaders(purchaseRows[0] || []);
 
-    });
-</script>
+          const productsByBarcode = {};
+
+          // Build products
+          for (let i = 1; i < prodRows.length; i++) {
+            const r = prodRows[i];
+            if (!r.length || r.every(cell => !cell)) continue;
+
+            const barcode = r[prodHeader["Product Barcode"]] || "";
+            if (!barcode) continue;
+
+            productsByBarcode[barcode] = {
+              barcode,
+              name: r[prodHeader["Product"]] || "",
+              category: r[prodHeader["Category"]] || "",
+              vendor: r[prodHeader["Vendor"]] || "",
+              asin: r[prodHeader["AMAZON ASIN INART"]] || "",
+              sku: r[prodHeader["AMAZON SKU INART"]] || "",
+              image: r[prodHeader["Image_URL"]] || r[prodHeader["Image"]] || r[prodHeader["AMAZON IMAGE"]] || "",
+              cost: r[prodHeader["Cost"]] || "",
+              initialStock: Number(r[prodHeader["Initial Stock"]] || 0),
+              restockLevel: Number(r[prodHeader["Restock Level"]] || 0),
+              purchases: 0,
+              sales: 0
+            };
+          }
+
+          // Aggregate sales
+          if (salesRows.length > 1) {
+            const idxBarcode = salesHeader["Product Barcode"];
+            const idxQty = salesHeader["Quantity"];
+            for (let i = 1; i < salesRows.length; i++) {
+              const r = salesRows[i];
+              if (!r.length || r.every(cell => !cell)) continue;
+              const bc = r[idxBarcode] || "";
+              const qty = Number(r[idxQty] || 0);
+              if (productsByBarcode[bc]) {
+                productsByBarcode[bc].sales += qty;
+              }
+            }
+          }
+
+          // Aggregate purchases
+          if (purchaseRows.length > 1) {
+            const idxBarcode = purchHeader["Product Barcode"];
+            const idxQty = purchHeader["Quantity"];
+            for (let i = 1; i < purchaseRows.length; i++) {
+              const r = purchaseRows[i];
+              if (!r.length || r.every(cell => !cell)) continue;
+              const bc = r[idxBarcode] || "";
+              const qty = Number(r[idxQty] || 0);
+              if (productsByBarcode[bc]) {
+                productsByBarcode[bc].purchases += qty;
+              }
+            }
+          }
+
+          // Compute current stock
+          const productsList = Object.values(productsByBarcode).map(p => ({
+            ...p,
+            currentStock: p.initialStock + p.purchases - p.sales
+          }));
+
+          setProducts(productsList);
+        } catch (err) {
+          console.error(err);
+          setError(err.message);
+        } finally {
+          setLoading(false);
+        }
+      }
+
+      // Get unique categories and vendors
+      const categories = useMemo(() => {
+        const cats = new Set(products.map(p => p.category).filter(Boolean));
+        return Array.from(cats).sort();
+      }, [products]);
+
+      const vendors = useMemo(() => {
+        const vends = new Set(products.map(p => p.vendor).filter(Boolean));
+        return Array.from(vends).sort();
+      }, [products]);
+
+      // Filter and sort products
+      const filteredProducts = useMemo(() => {
+        let filtered = products;
+
+        // View mode filter
+        if (viewMode === 'low') {
+          filtered = filtered.filter(p => p.currentStock <= p.restockLevel && p.currentStock > 0);
+        } else if (viewMode === 'zero') {
+          filtered = filtered.filter(p => p.currentStock <= 0);
+        } else if (viewMode === 'best') {
+          filtered = filtered.filter(p => p.sales > 0);
+        }
+
+        // Category filter
+        if (categoryFilter) {
+          filtered = filtered.filter(p => p.category === categoryFilter);
+        }
+
+        // Vendor filter
+        if (vendorFilter) {
+          filtered = filtered.filter(p => p.vendor === vendorFilter);
+        }
+
+        // Search filter
+        if (searchTerm) {
+          const term = searchTerm.toLowerCase();
+          filtered = filtered.filter(p => {
+            const searchText = [
+              p.name,
+              p.barcode,
+              p.category,
+              p.vendor,
+              p.asin,
+              p.sku
+            ].join(' ').toLowerCase();
+            return searchText.includes(term);
+          });
+        }
+
+        // Sort
+        const sorted = [...filtered];
+        if (sortBy === 'name') {
+          sorted.sort((a, b) => (a.name || a.barcode).localeCompare(b.name || b.barcode));
+        } else if (sortBy === 'stockDesc') {
+          sorted.sort((a, b) => b.currentStock - a.currentStock);
+        } else if (sortBy === 'stockAsc') {
+          sorted.sort((a, b) => a.currentStock - b.currentStock);
+        } else if (sortBy === 'salesDesc') {
+          sorted.sort((a, b) => b.sales - a.sales);
+        }
+
+        return sorted;
+      }, [products, viewMode, categoryFilter, vendorFilter, searchTerm, sortBy]);
+
+      // Calculate stats
+      const stats = useMemo(() => {
+        const totalUnits = products.reduce((sum, p) => sum + p.currentStock, 0);
+        const lowStock = products.filter(p => p.currentStock > 0 && p.currentStock <= p.restockLevel).length;
+        const outOfStock = products.filter(p => p.currentStock <= 0).length;
+        const bestSeller = products.reduce((best, p) => p.sales > (best?.sales || 0) ? p : best, null);
+
+        return {
+          totalProducts: products.length,
+          totalCategories: categories.length,
+          totalUnits,
+          lowStock,
+          outOfStock,
+          bestSeller
+        };
+      }, [products, categories]);
+
+      if (loading) {
+        return (
+          <div className="loading-container">
+            <div className="spinner"></div>
+            <div className="loading-text">Loading products...</div>
+          </div>
+        );
+      }
+
+      if (error) {
+        return (
+          <div className="empty-state">
+            <div className="empty-icon">⚠️</div>
+            <div className="empty-title">Error Loading Data</div>
+            <div className="empty-text">{error}</div>
+            <button onClick={loadData} style={{marginTop: '1rem', padding: '0.5rem 1rem', borderRadius: '8px', border: 'none', background: 'var(--primary)', color: 'white', cursor: 'pointer'}}>
+              Retry
+            </button>
+          </div>
+        );
+      }
+
+      return (
+        <>
+          <header className="header">
+            <div className="header-content">
+              <h1 className="header-title">📦 InArt Stock</h1>
+              <span className="header-badge">Live · {products.length} SKUs</span>
+            </div>
+          </header>
+
+          <div className="container">
+            {/* Stats */}
+            <div className="stats-grid">
+              <div className="stat-card">
+                <div className="stat-label">Total SKUs</div>
+                <div className="stat-value">{stats.totalProducts}</div>
+                <div className="stat-sub">{stats.totalCategories} categories</div>
+              </div>
+              <div className="stat-card">
+                <div className="stat-label">Units in Stock</div>
+                <div className="stat-value">{stats.totalUnits.toLocaleString()}</div>
+                <div className="stat-sub">{stats.lowStock} low stock</div>
+              </div>
+              <div className="stat-card">
+                <div className="stat-label">Out of Stock</div>
+                <div className="stat-value">{stats.outOfStock}</div>
+                <div className="stat-sub">Need restock</div>
+              </div>
+              <div className="stat-card">
+                <div className="stat-label">Best Seller</div>
+                <div className="stat-value" style={{fontSize: '1rem'}}>
+                  {stats.bestSeller ? (stats.bestSeller.name || stats.bestSeller.barcode).substring(0, 20) : '—'}
+                </div>
+                <div className="stat-sub">
+                  {stats.bestSeller ? `${stats.bestSeller.sales} sold` : 'No sales'}
+                </div>
+              </div>
+            </div>
+
+            {/* Filters */}
+            <div className="filters">
+              <div className="search-box">
+                <span className="search-icon">🔍</span>
+                <input
+                  type="text"
+                  className="search-input"
+                  placeholder="Search by name, barcode, ASIN, SKU..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                />
+              </div>
+              <div className="filter-row">
+                <select className="filter-select" value={categoryFilter} onChange={(e) => setCategoryFilter(e.target.value)}>
+                  <option value="">All Categories</option>
+                  {categories.map(cat => (
+                    <option key={cat} value={cat}>{cat}</option>
+                  ))}
+                </select>
+                <select className="filter-select" value={vendorFilter} onChange={(e) => setVendorFilter(e.target.value)}>
+                  <option value="">All Vendors</option>
+                  {vendors.map(vendor => (
+                    <option key={vendor} value={vendor}>{vendor}</option>
+                  ))}
+                </select>
+                <select className="filter-select" value={sortBy} onChange={(e) => setSortBy(e.target.value)}>
+                  <option value="name">Sort: A-Z</option>
+                  <option value="stockDesc">Stock: High → Low</option>
+                  <option value="stockAsc">Stock: Low → High</option>
+                  <option value="salesDesc">Best Sellers</option>
+                </select>
+              </div>
+            </div>
+
+            {/* Quick Filters */}
+            <div className="quick-filters">
+              <button
+                className={`quick-filter-btn ${viewMode === 'all' ? 'active' : ''}`}
+                onClick={() => setViewMode('all')}
+              >
+                All Products
+              </button>
+              <button
+                className={`quick-filter-btn ${viewMode === 'low' ? 'active' : ''}`}
+                onClick={() => setViewMode('low')}
+              >
+                Low Stock
+              </button>
+              <button
+                className={`quick-filter-btn ${viewMode === 'zero' ? 'active' : ''}`}
+                onClick={() => setViewMode('zero')}
+              >
+                Out of Stock
+              </button>
+              <button
+                className={`quick-filter-btn ${viewMode === 'best' ? 'active' : ''}`}
+                onClick={() => setViewMode('best')}
+              >
+                Best Sellers
+              </button>
+            </div>
+
+            {/* Products Grid */}
+            {filteredProducts.length === 0 ? (
+              <div className="empty-state">
+                <div className="empty-icon">📦</div>
+                <div className="empty-title">No Products Found</div>
+                <div className="empty-text">Try adjusting your filters</div>
+              </div>
+            ) : (
+              <div className="products-grid">
+                {filteredProducts.map(product => (
+                  <ProductCard
+                    key={product.barcode}
+                    product={product}
+                    onImageClick={setModalImage}
+                  />
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* Image Modal */}
+          {modalImage && (
+            <div className="modal-overlay" onClick={() => setModalImage(null)}>
+              <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+                <button className="modal-close" onClick={() => setModalImage(null)}>×</button>
+                <img src={modalImage} alt="Product" className="modal-image" />
+              </div>
+            </div>
+          )}
+        </>
+      );
+    }
+
+    // === PRODUCT CARD COMPONENT ===
+    function ProductCard({ product, onImageClick }) {
+      const [imageError, setImageError] = useState(false);
+
+      const stockClass = product.currentStock <= 0 
+        ? 'stock-zero' 
+        : product.currentStock <= product.restockLevel 
+          ? 'stock-low' 
+          : 'stock-ok';
+
+      return (
+        <div className="product-card">
+          <div className="product-card-header">
+            <div 
+              className="product-image-container"
+              onClick={() => product.image && !imageError && onImageClick(product.image)}
+              style={{ cursor: product.image && !imageError ? 'pointer' : 'default' }}
+            >
+              {product.image && !imageError ? (
+                <img
+                  src={product.image}
+                  alt={product.name}
+                  className="product-image"
+                  onError={() => setImageError(true)}
+                  loading="lazy"
+                />
+              ) : (
+                <div className="product-image-placeholder">📦</div>
+              )}
+            </div>
+            <div className="product-info">
+              <div className="product-name">{product.name || product.barcode}</div>
+              <div className="product-category">{product.category}</div>
+              <span className={`product-stock-badge ${stockClass}`}>
+                {product.currentStock} in stock
+              </span>
+            </div>
+          </div>
+          <div className="product-card-body">
+            <div className="product-details">
+              <div className="detail-item">
+                <div className="detail-label">Vendor</div>
+                <div className="detail-value">{product.vendor || '—'}</div>
+              </div>
+              <div className="detail-item">
+                <div className="detail-label">Barcode</div>
+                <div className="detail-value">{product.barcode}</div>
+              </div>
+              <div className="detail-item">
+                <div className="detail-label">ASIN</div>
+                <div className="detail-value">{product.asin || '—'}</div>
+              </div>
+              <div className="detail-item">
+                <div className="detail-label">SKU</div>
+                <div className="detail-value">{product.sku || '—'}</div>
+              </div>
+              <div className="detail-item">
+                <div className="detail-label">Cost</div>
+                <div className="detail-value">{product.cost || '—'}</div>
+              </div>
+              <div className="detail-item">
+                <div className="detail-label">Sales</div>
+                <div className="detail-value">{product.sales}</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    // === RENDER APP ===
+    ReactDOM.render(<App />, document.getElementById('root'));
+  </script>
 </body>
 </html>
