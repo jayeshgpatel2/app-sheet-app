@@ -1,636 +1,785 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <title>InArt Stock Dashboard</title>
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <style>
-    * { box-sizing: border-box; }
-    body {
-      margin: 0;
-      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-      background: #f5f5f7;
-      color: #111827;
-    }
-    header {
-      padding: 12px 20px;
-      background: #111827;
-      color: #f9fafb;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      flex-wrap: wrap;
-      gap: 8px;
-    }
-    header h1 {
-      margin: 0;
-      font-size: 18px;
-      font-weight: 600;
-    }
-    .badge {
-      background: #22c55e;
-      color: white;
-      border-radius: 999px;
-      padding: 2px 10px;
-      font-size: 11px;
-      font-weight: 600;
-    }
-    main {
-      padding: 16px;
-      max-width: 1300px;
-      margin: 0 auto;
-    }
-    .controls {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 10px;
-      margin-bottom: 12px;
-    }
-    .controls > * {
-      flex: 1 1 160px;
-      min-width: 0;
-    }
-    input, select {
-      width: 100%;
-      padding: 7px 9px;
-      border-radius: 6px;
-      border: 1px solid #d1d5db;
-      font-size: 13px;
-      outline: none;
-    }
-    input:focus, select:focus {
-      border-color: #3b82f6;
-      box-shadow: 0 0 0 1px #3b82f633;
-    }
-    .pill-group {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 8px;
-      margin-bottom: 10px;
-    }
-    .pill {
-      padding: 6px 10px;
-      border-radius: 999px;
-      border: 1px solid #d1d5db;
-      background: white;
-      font-size: 12px;
-      cursor: pointer;
-      transition: all 0.2s;
-    }
-    .pill:hover {
-      border-color: #111827;
-    }
-    .pill.active {
-      background: #111827;
-      color: #f9fafb;
-      border-color: #111827;
-    }
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      background: white;
-      border-radius: 10px;
-      overflow: hidden;
-      box-shadow: 0 10px 30px rgba(15,23,42,0.08);
-      font-size: 12px;
-    }
-    thead {
-      background: #111827;
-      color: #f9fafb;
-    }
-    th, td {
-      padding: 8px 10px;
-      text-align: left;
-      border-bottom: 1px solid #e5e7eb;
-      vertical-align: middle;
-    }
-    th {
-      position: sticky;
-      top: 0;
-      z-index: 1;
-      font-weight: 600;
-    }
-    tbody tr:hover {
-      background: #f3f4f6;
-    }
-    .img-cell {
-      width: 60px;
-    }
-    .img-cell img {
-      max-width: 50px;
-      max-height: 50px;
-      border-radius: 6px;
-      object-fit: cover;
-      border: 1px solid #e5e7eb;
-      background: #f9fafb;
-    }
-    .img-cell .no-img {
-      width: 50px;
-      height: 50px;
-      border-radius: 6px;
-      background: #e5e7eb;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 20px;
-      color: #9ca3af;
-    }
-    .stock-badge {
-      padding: 2px 8px;
-      border-radius: 999px;
-      font-weight: 600;
-      font-size: 11px;
-      display: inline-block;
-    }
-    .stock-ok { background: #dcfce7; color: #15803d; }
-    .stock-low { background: #fee2e2; color: #b91c1c; }
-    .stock-zero { background: #fecaca; color: #991b1b; }
-    .subtext {
-      font-size: 11px;
-      color: #6b7280;
-    }
-    .summary {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 12px;
-      margin-bottom: 14px;
-    }
-    .card {
-      flex: 1 1 160px;
-      background: white;
-      border-radius: 12px;
-      padding: 10px 12px;
-      box-shadow: 0 6px 20px rgba(15,23,42,0.05);
-    }
-    .card-title {
-      font-size: 11px;
-      color: #6b7280;
-      text-transform: uppercase;
-      letter-spacing: 0.06em;
-      margin-bottom: 4px;
-    }
-    .card-value {
-      font-size: 18px;
-      font-weight: 600;
-    }
-    .card-sub {
-      font-size: 11px;
-      color: #6b7280;
-      margin-top: 2px;
-    }
-    @media (max-width: 768px) {
-      header { padding: 10px 12px; }
-      main { padding: 10px; }
-      table { font-size: 11px; }
-      th, td { padding: 6px 6px; }
-      .img-cell { display: none; }
-    }
-  </style>
+    <meta charset="UTF-8" />
+    <title>InArt Stock Dashboard (Advanced)</title>
+    <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <style>
+        /* BASE & TYPOGRAPHY */
+        :root {
+            --color-primary: #1e3a8a; /* Dark Blue */
+            --color-secondary: #3b82f6; /* Blue */
+            --color-background: #f8fafc;
+            --color-surface: #ffffff;
+            --color-text-base: #1f2937;
+            --color-text-muted: #6b7280;
+            --color-success: #10b981;
+            --color-warning: #f59e0b;
+            --color-error: #ef4444;
+            --shadow-sm: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+            --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        }
+        * { box-sizing: border-box; }
+        body {
+            margin: 0;
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background: var(--color-background);
+            color: var(--color-text-base);
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        /* HEADER & NAVIGATION (Mobile look from image) */
+        .app-bar {
+            background: var(--color-secondary);
+            color: white;
+            padding: 12px 16px;
+            display: grid;
+            grid-template-columns: 1fr auto 1fr;
+            align-items: center;
+            box-shadow: var(--shadow-md);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        .app-bar-left, .app-bar-right {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+        .app-bar-right { justify-content: flex-end; }
+        .app-bar-title {
+            font-size: 18px;
+            font-weight: 600;
+            text-align: center;
+        }
+        .app-bar button {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 20px;
+            cursor: pointer;
+            padding: 4px;
+        }
+
+        /* MAIN CONTENT */
+        main {
+            padding: 10px;
+            max-width: 1300px;
+            margin: 0 auto;
+        }
+
+        /* SUMMARY CARDS */
+        .summary-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        .card {
+            background: var(--color-surface);
+            border-radius: 12px;
+            padding: 12px;
+            box-shadow: var(--shadow-sm);
+            border-left: 4px solid var(--color-secondary);
+        }
+        .card-title {
+            font-size: 11px;
+            color: var(--color-text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 4px;
+        }
+        .card-value {
+            font-size: 20px;
+            font-weight: 700;
+        }
+        .card-sub {
+            font-size: 11px;
+            color: var(--color-text-muted);
+            margin-top: 2px;
+            overflow: hidden;
+            white-space: nowrap;
+            text-overflow: ellipsis;
+        }
+
+        /* CONTROLS (Filters, Search, Sort) */
+        .controls {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 12px;
+        }
+        .controls > * {
+            flex: 1 1 150px;
+            min-width: 0;
+        }
+        .search-input {
+            flex-grow: 1;
+        }
+        input, select {
+            width: 100%;
+            padding: 8px 10px;
+            border-radius: 8px;
+            border: 1px solid #d1d5db;
+            font-size: 14px;
+            outline: none;
+            background: white;
+            transition: all 0.2s;
+        }
+        input:focus, select:focus {
+            border-color: var(--color-secondary);
+            box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
+        }
+
+        /* PILL TABS */
+        .pill-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            margin-bottom: 15px;
+        }
+        .pill {
+            padding: 7px 14px;
+            border-radius: 999px;
+            border: 1px solid #d1d5db;
+            background: white;
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+            color: var(--color-text-base);
+        }
+        .pill:hover {
+            border-color: var(--color-primary);
+        }
+        .pill.active {
+            background: var(--color-primary);
+            color: var(--color-surface);
+            border-color: var(--color-primary);
+            font-weight: 600;
+        }
+
+        /* MOBILE PRODUCT LIST (Default) */
+        .product-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        .product-item {
+            display: flex;
+            align-items: center;
+            background: white;
+            padding: 10px;
+            border-radius: 10px;
+            box-shadow: var(--shadow-sm);
+        }
+        .product-img {
+            width: 50px;
+            height: 50px;
+            flex-shrink: 0;
+            border-radius: 6px;
+            object-fit: cover;
+            margin-right: 10px;
+            border: 1px solid #e5e7eb;
+        }
+        .product-img .no-img {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            color: #9ca3af;
+            background: #f3f4f6;
+            border-radius: 6px;
+        }
+        .product-details {
+            flex-grow: 1;
+            min-width: 0;
+        }
+        .product-sku {
+            font-weight: 600;
+            font-size: 14px;
+            overflow: hidden;
+            white-space: nowrap;
+            text-overflow: ellipsis;
+        }
+        .product-name {
+            font-size: 12px;
+            color: var(--color-text-muted);
+            overflow: hidden;
+            white-space: nowrap;
+            text-overflow: ellipsis;
+        }
+        .product-stock-price {
+            text-align: right;
+            flex-shrink: 0;
+            margin-left: 10px;
+        }
+        .product-price {
+            font-weight: 600;
+            font-size: 16px;
+        }
+        .product-stock-badge {
+            font-size: 12px;
+            font-weight: 600;
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 999px;
+        }
+
+        /* STOCK BADGE COLORS */
+        .stock-ok { background: #dcfce7; color: #15803d; }
+        .stock-low { background: #fef3c7; color: #b45309; }
+        .stock-zero { background: #fee2e2; color: #b91c1c; }
+
+        /* DESKTOP TABLE (Hidden on mobile) */
+        .desktop-table {
+            display: none; /* Hide on mobile by default */
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: var(--shadow-md);
+            font-size: 13px;
+        }
+        thead {
+            background: var(--color-primary);
+            color: var(--color-surface);
+        }
+        th, td {
+            padding: 10px 12px;
+            text-align: left;
+            border-bottom: 1px solid #e5e7eb;
+            vertical-align: middle;
+        }
+        th {
+            position: sticky;
+            top: 50px; /* Below the app bar */
+            z-index: 50;
+            font-weight: 600;
+        }
+        tbody tr:hover {
+            background: #f9fafb;
+        }
+        .table-subtext {
+            font-size: 11px;
+            color: var(--color-text-muted);
+        }
+
+        /* FLOATING ACTION BUTTONS (FAB) */
+        .fab-group {
+            position: fixed;
+            right: 16px;
+            bottom: 60px; /* Above the bottom nav (if it were present) */
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            align-items: flex-end;
+            z-index: 200;
+        }
+        .fab-button {
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            background: white;
+            color: var(--color-primary);
+            border: none;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+            font-size: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .fab-button.main {
+            width: 55px;
+            height: 55px;
+            background: var(--color-success);
+            color: white;
+            font-size: 26px;
+        }
+        .fab-button:hover {
+            transform: scale(1.05);
+        }
+
+        /* MEDIA QUERY FOR DESKTOP */
+        @media (min-width: 768px) {
+            .app-bar { padding: 12px 20px; }
+            main { padding: 20px; }
+            .product-list { display: none; } /* Hide mobile list on desktop */
+            .desktop-table { display: block; } /* Show desktop table */
+            .controls { display: flex; }
+            .search-input { flex: 1 1 300px; }
+        }
+    </style>
 </head>
 <body>
-<header>
-  <h1>InArt Stock Dashboard</h1>
-  <span class="badge">Live · Auto-Updated</span>
+
+<header class="app-bar">
+    <div class="app-bar-left">
+        <button id="menuBtn" aria-label="Menu"><i class="fas fa-bars"></i></button>
+        <div class="app-bar-title">Product List</div>
+    </div>
+    <div class="app-bar-title"></div>
+    <div class="app-bar-right">
+        <button id="searchBtn" aria-label="Search"><i class="fas fa-search"></i></button>
+        <button id="confirmBtn" aria-label="Confirm"><i class="fas fa-check-square"></i></button>
+        <button id="moreBtn" aria-label="More"><i class="fas fa-ellipsis-v"></i></button>
+    </div>
 </header>
 
 <main>
-  <section class="summary">
-    <div class="card">
-      <div class="card-title">Total SKUs</div>
-      <div class="card-value" id="statTotalSkus">–</div>
-      <div class="card-sub" id="statTotalCategories">–</div>
-    </div>
-    <div class="card">
-      <div class="card-title">Units in Stock</div>
-      <div class="card-value" id="statUnitsStock">–</div>
-      <div class="card-sub" id="statLowStock">–</div>
-    </div>
-    <div class="card">
-      <div class="card-title">Best Seller (Qty)</div>
-      <div class="card-value" id="statBestSeller">–</div>
-      <div class="card-sub" id="statBestSellerQty">–</div>
-    </div>
-  </section>
+    <section class="summary-grid">
+        <div class="card">
+            <div class="card-title">Total SKUs</div>
+            <div class="card-value" id="statTotalSkus">–</div>
+            <div class="card-sub" id="statTotalCategories">–</div>
+        </div>
+        <div class="card">
+            <div class="card-title">Units in Stock</div>
+            <div class="card-value" id="statUnitsStock">–</div>
+            <div class="card-sub" id="statLowStock">–</div>
+        </div>
+        <div class="card">
+            <div class="card-title">Best Seller (Qty)</div>
+            <div class="card-value" id="statBestSeller">–</div>
+            <div class="card-sub" id="statBestSellerQty">–</div>
+        </div>
+    </section>
 
-  <section class="controls">
-    <input type="text" id="searchInput" placeholder="Search by name, barcode, ASIN, SKU…" />
-    <select id="categoryFilter">
-      <option value="">All categories</option>
-    </select>
-    <select id="vendorFilter">
-      <option value="">All vendors</option>
-    </select>
-    <select id="sortMode">
-      <option value="name">Sort: Product name (A-Z)</option>
-      <option value="stockDesc">Sort: Stock high → low</option>
-      <option value="stockAsc">Sort: Stock low → high</option>
-      <option value="salesDesc">Sort: Best sellers (Qty)</option>
-    </select>
-  </section>
+    <section class="controls">
+        <input type="text" id="searchInput" class="search-input" placeholder="Search by name, barcode, ASIN, SKU…" />
+        <select id="categoryFilter">
+            <option value="">All Categories</option>
+        </select>
+        <select id="vendorFilter">
+            <option value="">All Vendors</option>
+        </select>
+        <select id="sortMode">
+            <option value="name">Sort: Product name (A-Z)</option>
+            <option value="stockDesc">Sort: Stock high → low</option>
+            <option value="stockAsc">Sort: Stock low → high</option>
+            <option value="salesDesc">Sort: Best sellers (Qty)</option>
+        </select>
+    </section>
 
-  <section class="pill-group">
-    <button class="pill active" data-view="all">All products</button>
-    <button class="pill" data-view="low">Low stock</button>
-    <button class="pill" data-view="zero">Out of stock</button>
-    <button class="pill" data-view="best">Best sellers</button>
-  </section>
+    <section class="pill-group">
+        <button class="pill active" data-view="all">All products</button>
+        <button class="pill" data-view="low">Low stock</button>
+        <button class="pill" data-view="zero">Out of stock</button>
+        <button class="pill" data-view="best">Best sellers</button>
+    </section>
 
-  <section>
-    <table>
-      <thead>
-      <tr>
-        <th class="img-cell">Image</th>
-        <th>Product</th>
-        <th>Barcode</th>
-        <th>Category / Vendor</th>
-        <th>ASIN / SKU</th>
-        <th>Cost</th>
-        <th>Stock</th>
-        <th>Purchases</th>
-        <th>Sales</th>
-      </tr>
-      </thead>
-      <tbody id="tableBody">
-      <tr><td colspan="9" style="text-align:center;padding:20px;color:#6b7280;">Loading data...</td></tr>
-      </tbody>
-    </table>
-  </section>
+    <ul class="product-list" id="mobileList">
+        <li><div style="text-align:center;padding:20px;color:var(--color-text-muted);">Loading data...</div></li>
+    </ul>
+
+    <section class="desktop-table">
+        <table>
+            <thead>
+            <tr>
+                <th>Product</th>
+                <th>Barcode</th>
+                <th>Category / Vendor</th>
+                <th>ASIN / SKU</th>
+                <th>Cost</th>
+                <th>Stock</th>
+                <th>Purchases</th>
+                <th>Sales</th>
+            </tr>
+            </thead>
+            <tbody id="tableBody">
+            <tr><td colspan="8" style="text-align:center;padding:20px;color:var(--color-text-muted);">Loading data...</td></tr>
+            </tbody>
+        </table>
+    </section>
 </main>
 
+<div class="fab-group">
+    <button class="fab-button" aria-label="Download/Filter"><i class="fas fa-download"></i></button>
+    <button class="fab-button main" aria-label="Add Stock"><i class="fas fa-plus"></i></button>
+</div>
+
+<nav class="bottom-nav" style="background:#1e3a8a; color:white; display: flex; justify-content: space-around; padding: 10px 0; position: fixed; bottom: 0; width: 100%; box-shadow: 0 -2px 10px rgba(0,0,0,0.1); z-index: 100;">
+    <button style="background:none; border:none; color:white; font-size: 11px; cursor:pointer; opacity: 0.7;"><i class="fas fa-cubes fa-lg"></i><br/>Add Stock</button>
+    <button style="background:none; border:none; color:white; font-size: 11px; cursor:pointer; font-weight: 600;"><i class="fas fa-clipboard-list fa-lg"></i><br/>Product List</button>
+    <button style="background:none; border:none; color:white; font-size: 11px; cursor:pointer; opacity: 0.7;"><i class="fas fa-smile fa-lg"></i><br/>Vendor Wise</button>
+    <button style="background:none; border:none; color:white; font-size: 11px; cursor:pointer; opacity: 0.7;"><i class="fas fa-trophy fa-lg"></i><br/>Best Sellers</button>
+    <button style="background:none; border:none; color:white; font-size: 11px; cursor:pointer; opacity: 0.7;"><i class="fas fa-th-list fa-lg"></i><br/>Category Wise</button>
+    <button style="background:none; border:none; color:white; font-size: 11px; cursor:pointer; opacity: 0.7;"><i class="fas fa-shopping-cart fa-lg"></i><br/>Sell</button>
+</nav>
+
 <script>
-  // === CONFIG: your CSV endpoints ===
-  const PRODUCT_CSV =
-    "https://docs.google.com/spreadsheets/d/e/2PACX-1vTigsGhlpnrwXI_q8RklVhfc7cD8dezLyLS9fXHN842Tk6dM430UVo5UTMjFKV08P3f0pKNtsadi-t3/pub?gid=2104089495&single=true&output=csv";
-  const SALES_CSV =
-    "https://docs.google.com/spreadsheets/d/e/2PACX-1vTigsGhlpnrwXI_q8RklVhfc7cD8dezLyLS9fXHN842Tk6dM430UVo5UTMjFKV08P3f0pKNtsadi-t3/pub?gid=438476529&single=true&output=csv";
-  const PURCHASES_CSV =
-    "https://docs.google.com/spreadsheets/d/e/2PACX-1vTigsGhlpnrwXI_q8RklVhfc7cD8dezLyLS9fXHN842Tk6dM430UVo5UTMjFKV08P3f0pKNtsadi-t3/pub?gid=1808784762&single=true&output=csv";
+    // === CONFIG: your CSV endpoints ===
+    const PRODUCT_CSV =
+        "https://docs.google.com/spreadsheets/d/e/2PACX-1vTigsGhlpnrwXI_q8RklVhfc7cD8dezLyLS9fXHN842Tk6dM430UVo5UTMjFKV08P3f0pKNtsadi-t3/pub?gid=2104089495&single=true&output=csv";
+    const SALES_CSV =
+        "https://docs.google.com/spreadsheets/d/e/2PACX-1vTigsGhlpnrwXI_q8RklVhfc7cD8dezLyLS9fXHN842Tk6dM430UVo5UTMjFKV08P3f0pKNtsadi-t3/pub?gid=438476529&single=true&output=csv";
+    const PURCHASES_CSV =
+        "https://docs.google.com/spreadsheets/d/e/2PACX-1vTigsGhlpnrwXI_q8RklVhfc7cD8dezLyLS9fXHN842Tk6dM430UVo5UTMjFKV08P3f0pKNtsadi-t3/pub?gid=1808784762&single=true&output=csv";
 
-  // Simple CSV parser
-  function parseCSV(text) {
-    const lines = text.trim().split(/\r?\n/);
-    return lines.map(line => {
-      const result = [];
-      let current = '';
-      let inQuotes = false;
-      for (let i = 0; i < line.length; i++) {
-        const char = line[i];
-        if (char === '"' && line[i + 1] === '"') {
-          current += '"';
-          i++;
-        } else if (char === '"') {
-          inQuotes = !inQuotes;
-        } else if (char === ',' && !inQuotes) {
-          result.push(current);
-          current = '';
+    // Simple CSV parser
+    function parseCSV(text) {
+        const lines = text.trim().split(/\r?\n/);
+        return lines.map(line => {
+            const result = [];
+            let current = '';
+            let inQuotes = false;
+            for (let i = 0; i < line.length; i++) {
+                const char = line[i];
+                if (char === '"' && line[i + 1] === '"') {
+                    current += '"';
+                    i++;
+                } else if (char === '"') {
+                    inQuotes = !inQuotes;
+                } else if (char === ',' && !inQuotes) {
+                    result.push(current);
+                    current = '';
+                } else {
+                    current += char;
+                }
+            }
+            result.push(current);
+            return result;
+        });
+    }
+
+    // Fetches and parses CSV data
+    async function fetchCSV(url) {
+        // Use a cache header for faster subsequent loading during development/testing
+        const res = await fetch(url, { cache: 'no-cache' }); 
+        if (!res.ok) throw new Error("Failed to fetch " + url);
+        const txt = await res.text();
+        return parseCSV(txt);
+    }
+
+    // Creates a header name to column index map
+    function indexHeaders(row) {
+        const map = {};
+        row.forEach((h, idx) => {
+            map[h.trim()] = idx;
+        });
+        return map;
+    }
+
+    const state = {
+        productsByBarcode: {},
+        productsList: [],
+        viewMode: "all"
+    };
+
+    /**
+     * Loads all data and computes stock. This is the critical performance step.
+     */
+    async function loadData() {
+        try {
+            // Awaiting all fetches concurrently greatly speeds up the initial load time
+            const [prodRows, salesRows, purchaseRows] = await Promise.all([
+                fetchCSV(PRODUCT_CSV),
+                fetchCSV(SALES_CSV),
+                fetchCSV(PURCHASES_CSV)
+            ]);
+
+            const prodHeader = indexHeaders(prodRows[0]);
+            const salesHeader = indexHeaders(salesRows[0] || []);
+            const purchHeader = indexHeaders(purchaseRows[0] || []);
+
+            // 1. Build initial product list
+            state.productsByBarcode = {};
+            for (let i = 1; i < prodRows.length; i++) {
+                const r = prodRows[i];
+                if (!r.length || r.every(cell => !cell)) continue;
+                
+                const barcode = r[prodHeader["Product Barcode"]] || "";
+                if (!barcode) continue;
+                
+                const imageUrl = r[prodHeader["Image_URL"]] || r[prodHeader["Image"]] || r[prodHeader["AMAZON IMAGE"]] || "";
+                
+                const p = {
+                    barcode,
+                    name: r[prodHeader["Product"]] || "",
+                    category: r[prodHeader["Category"]] || "",
+                    image: imageUrl,
+                    initialStock: Number(r[prodHeader["Initial Stock"]] || 0),
+                    restockLevel: Number(r[prodHeader["Restock Level"]] || 0),
+                    cost: r[prodHeader["Cost"]] || "",
+                    vendor: r[prodHeader["Vendor"]] || "",
+                    asin: r[prodHeader["AMAZON ASIN INART"]] || "",
+                    sku: r[prodHeader["AMAZON SKU INART"]] || "",
+                    purchases: 0,
+                    sales: 0,
+                    currentStock: 0 // Will be computed
+                };
+                state.productsByBarcode[barcode] = p;
+            }
+
+            // 2. Aggregate sales
+            if (salesRows.length > 1) {
+                const idxBarcode = salesHeader["Product Barcode"];
+                const idxQty = salesHeader["Quantity"];
+                for (let i = 1; i < salesRows.length; i++) {
+                    const r = salesRows[i];
+                    const bc = r[idxBarcode] || "";
+                    const qty = Number(r[idxQty] || 0);
+                    if (state.productsByBarcode[bc]) {
+                        state.productsByBarcode[bc].sales += qty;
+                    }
+                }
+            }
+
+            // 3. Aggregate purchases
+            if (purchaseRows.length > 1) {
+                const idxBarcode = purchHeader["Product Barcode"];
+                const idxQty = purchHeader["Quantity"];
+                for (let i = 1; i < purchaseRows.length; i++) {
+                    const r = purchaseRows[i];
+                    const bc = r[idxBarcode] || "";
+                    const qty = Number(r[idxQty] || 0);
+                    if (state.productsByBarcode[bc]) {
+                        state.productsByBarcode[bc].purchases += qty;
+                    }
+                }
+            }
+
+            // 4. Compute final stock
+            state.productsList = Object.values(state.productsByBarcode);
+            state.productsList.forEach(p => {
+                p.currentStock = p.initialStock + p.purchases - p.sales;
+            });
+
+            // 5. Update UI
+            populateFilters();
+            updateSummary();
+            renderProducts(); // Combined render for mobile list and desktop table
+            
+        } catch (err) {
+            console.error("Load error:", err);
+            document.getElementById("tableBody").innerHTML = `<tr><td colspan="8" style="text-align:center;padding:20px;color:var(--color-error);">Error loading data: ${err.message}</td></tr>`;
+             document.getElementById("mobileList").innerHTML = `<li><div style="text-align:center;padding:20px;color:var(--color-error);">Error loading data: ${err.message}</div></li>`;
+        }
+    }
+
+    function populateFilters() {
+        const categorySet = new Set();
+        const vendorSet = new Set();
+        state.productsList.forEach(p => {
+            if (p.category) categorySet.add(p.category);
+            if (p.vendor) vendorSet.add(p.vendor);
+        });
+        
+        const categoryFilter = document.getElementById("categoryFilter");
+        const vendorFilter = document.getElementById("vendorFilter");
+
+        categoryFilter.innerHTML = '<option value="">All Categories</option>';
+        vendorFilter.innerHTML = '<option value="">All Vendors</option>';
+
+        [...categorySet].sort().forEach(cat => {
+            const opt = document.createElement("option");
+            opt.value = cat;
+            opt.textContent = cat;
+            categoryFilter.appendChild(opt);
+        });
+        
+        [...vendorSet].sort().forEach(v => {
+            const opt = document.createElement("option");
+            opt.value = v;
+            opt.textContent = v;
+            vendorFilter.appendChild(opt);
+        });
+    }
+
+    function updateSummary() {
+        const totalSkus = state.productsList.length;
+        const categories = new Set(state.productsList.map(p => p.category).filter(Boolean));
+        const totalUnits = state.productsList.reduce((sum, p) => sum + (p.currentStock || 0), 0);
+        const lowStockCount = state.productsList.filter(p => 
+            p.currentStock > 0 && p.currentStock <= p.restockLevel
+        ).length;
+        // Use functional style to find best seller
+        const best = state.productsList.reduce((best, current) => 
+            (current.sales || 0) > (best.sales || 0) ? current : best, {sales: 0});
+
+        document.getElementById("statTotalSkus").textContent = totalSkus;
+        document.getElementById("statTotalCategories").textContent = categories.size + " categories";
+
+        document.getElementById("statUnitsStock").textContent = totalUnits.toLocaleString();
+        document.getElementById("statLowStock").textContent = lowStockCount + " low / below restock";
+
+        if (best.sales > 0) {
+            const name = best.name || best.barcode;
+            document.getElementById("statBestSeller").textContent = name.length > 30 ? name.substring(0, 27) + "..." : name;
+            document.getElementById("statBestSellerQty").textContent = best.sales.toLocaleString() + " units sold";
         } else {
-          current += char;
+            document.getElementById("statBestSeller").textContent = "–";
+            document.getElementById("statBestSellerQty").textContent = "No sales yet";
         }
-      }
-      result.push(current);
-      return result;
-    });
-  }
-
-  async function fetchCSV(url) {
-    const res = await fetch(url);
-    if (!res.ok) throw new Error("Failed to fetch " + url);
-    const txt = await res.text();
-    return parseCSV(txt);
-  }
-
-  function indexHeaders(row) {
-    const map = {};
-    row.forEach((h, idx) => {
-      map[h.trim()] = idx;
-    });
-    return map;
-  }
-
-  const state = {
-    productsByBarcode: {},
-    productsList: [],
-    viewMode: "all"
-  };
-
-  async function loadData() {
-    try {
-      const [prodRows, salesRows, purchaseRows] = await Promise.all([
-        fetchCSV(PRODUCT_CSV),
-        fetchCSV(SALES_CSV),
-        fetchCSV(PURCHASES_CSV)
-      ]);
-
-      const prodHeader = indexHeaders(prodRows[0]);
-      const salesHeader = indexHeaders(salesRows[0] || []);
-      const purchHeader = indexHeaders(purchaseRows[0] || []);
-
-      // Clear existing data
-      state.productsByBarcode = {};
-      state.productsList = [];
-
-      // Build products
-      for (let i = 1; i < prodRows.length; i++) {
-        const r = prodRows[i];
-        if (!r.length || r.every(cell => !cell)) continue;
-        
-        const barcode = r[prodHeader["Product Barcode"]] || "";
-        if (!barcode) continue;
-        
-        // 🔧 KEY CHANGE: Look for "Image_URL" column first (from Apps Script)
-        // Falls back to old columns if Image_URL doesn't exist yet
-        const imageUrl = r[prodHeader["Image_URL"]] 
-                      || r[prodHeader["Image"]] 
-                      || r[prodHeader["AMAZON IMAGE"]] 
-                      || "";
-        
-        const p = {
-          barcode,
-          name: r[prodHeader["Product"]] || "",
-          category: r[prodHeader["Category"]] || "",
-          image: imageUrl, // Direct URL from Drive
-          initialStock: Number(r[prodHeader["Initial Stock"]] || 0),
-          restockLevel: Number(r[prodHeader["Restock Level"]] || 0),
-          cost: r[prodHeader["Cost"]] || "",
-          vendor: r[prodHeader["Vendor"]] || "",
-          asin: r[prodHeader["AMAZON ASIN INART"]] || "",
-          sku: r[prodHeader["AMAZON SKU INART"]] || "",
-          purchases: 0,
-          sales: 0,
-          currentStock: 0
-        };
-        state.productsByBarcode[barcode] = p;
-      }
-
-      // Aggregate sales
-      if (salesRows.length > 1) {
-        const idxBarcode = salesHeader["Product Barcode"];
-        const idxQty = salesHeader["Quantity"];
-        for (let i = 1; i < salesRows.length; i++) {
-          const r = salesRows[i];
-          if (!r.length || r.every(cell => !cell)) continue;
-          const bc = r[idxBarcode] || "";
-          const qty = Number(r[idxQty] || 0);
-          if (state.productsByBarcode[bc]) {
-            state.productsByBarcode[bc].sales += qty;
-          }
-        }
-      }
-
-      // Aggregate purchases
-      if (purchaseRows.length > 1) {
-        const idxBarcode = purchHeader["Product Barcode"];
-        const idxQty = purchHeader["Quantity"];
-        for (let i = 1; i < purchaseRows.length; i++) {
-          const r = purchaseRows[i];
-          if (!r.length || r.every(cell => !cell)) continue;
-          const bc = r[idxBarcode] || "";
-          const qty = Number(r[idxQty] || 0);
-          if (state.productsByBarcode[bc]) {
-            state.productsByBarcode[bc].purchases += qty;
-          }
-        }
-      }
-
-      // Compute current stock
-      state.productsList = Object.values(state.productsByBarcode);
-      state.productsList.forEach(p => {
-        p.currentStock = p.initialStock + p.purchases - p.sales;
-      });
-
-      populateFilters();
-      updateSummary();
-      renderTable();
-      
-    } catch (err) {
-      console.error("Load error:", err);
-      alert("Error loading data: " + err.message);
     }
-  }
 
-  function populateFilters() {
-    const categorySet = new Set();
-    const vendorSet = new Set();
-    state.productsList.forEach(p => {
-      if (p.category) categorySet.add(p.category);
-      if (p.vendor) vendorSet.add(p.vendor);
-    });
+    function getFilteredProducts() {
+        const search = document.getElementById("searchInput").value.trim().toLowerCase();
+        const category = document.getElementById("categoryFilter").value;
+        const vendor = document.getElementById("vendorFilter").value;
+        const sortMode = document.getElementById("sortMode").value;
+
+        let list = state.productsList.slice();
+
+        // View Mode Filter
+        if (state.viewMode === "low") {
+            list = list.filter(p => p.currentStock <= p.restockLevel && p.currentStock > 0);
+        } else if (state.viewMode === "zero") {
+            list = list.filter(p => p.currentStock <= 0);
+        } else if (state.viewMode === "best") {
+            list = list.filter(p => p.sales > 0);
+        }
+
+        // Standard Filters
+        if (category) {
+            list = list.filter(p => p.category === category);
+        }
+        if (vendor) {
+            list = list.filter(p => p.vendor === vendor);
+        }
+        
+        // Search Filter
+        if (search) {
+            list = list.filter(p => {
+                const s = [p.name, p.barcode, p.category, p.vendor, p.asin, p.sku].join(" ").toLowerCase();
+                return s.includes(search);
+            });
+        }
+
+        // Sorting
+        if (sortMode === "name") {
+            list.sort((a, b) => (a.name || a.barcode).localeCompare(b.name || b.barcode));
+        } else if (sortMode === "stockDesc") {
+            list.sort((a, b) => (b.currentStock || 0) - (a.currentStock || 0));
+        } else if (sortMode === "stockAsc") {
+            list.sort((a, b) => (a.currentStock || 0) - (b.currentStock || 0));
+        } else if (sortMode === "salesDesc") {
+            list.sort((a, b) => (b.sales || 0) - (a.sales || 0));
+        }
+
+        return list;
+    }
     
-    const categoryFilter = document.getElementById("categoryFilter");
-    const vendorFilter = document.getElementById("vendorFilter");
+    // Combined render function for mobile list and desktop table
+    function renderProducts() {
+        const list = getFilteredProducts();
+        const tbody = document.getElementById("tableBody");
+        const mobileList = document.getElementById("mobileList");
+        
+        tbody.innerHTML = "";
+        mobileList.innerHTML = "";
 
-    categoryFilter.innerHTML = '<option value="">All categories</option>';
-    vendorFilter.innerHTML = '<option value="">All vendors</option>';
+        if (list.length === 0) {
+            const noResults = '<div style="text-align:center;padding:20px;color:var(--color-text-muted);">No products found matching your criteria.</div>';
+            tbody.innerHTML = `<tr><td colspan="8" style="text-align:center;padding:20px;color:var(--color-text-muted);">No products found matching your criteria.</td></tr>`;
+            mobileList.innerHTML = `<li>${noResults}</li>`;
+            return;
+        }
 
-    [...categorySet].sort().forEach(cat => {
-      const opt = document.createElement("option");
-      opt.value = cat;
-      opt.textContent = cat;
-      categoryFilter.appendChild(opt);
+        list.forEach(p => {
+            const stockCls = p.currentStock <= 0 ? "stock-zero" : 
+                             (p.currentStock <= p.restockLevel ? "stock-low" : "stock-ok");
+
+            // --- Mobile List Item ---
+            const li = document.createElement("li");
+            li.className = "product-item";
+            li.innerHTML = `
+                <div class="product-img">
+                    ${p.image && p.image.startsWith("http") ? 
+                        `<img src="${p.image}" alt="${p.name || p.barcode}" onerror="this.style.display='none'; this.parentElement.innerHTML='<div class=\\'no-img\\'>📦</div>';" />` :
+                        `<div class="no-img">📦</div>`
+                    }
+                </div>
+                <div class="product-details">
+                    <div class="product-sku">${p.barcode}</div>
+                    <div class="product-name">${p.name || "-"} / ${p.category || "-"}</div>
+                </div>
+                <div class="product-stock-price">
+                    <div class="product-price">${(p.cost || "-")}</div>
+                    <div class="product-stock-badge ${stockCls}">${p.currentStock}</div>
+                </div>
+                <button style="margin-left:10px; border:none; background:none; color:${var(--color-text-muted)}; font-size:18px;"><i class="fas fa-edit"></i></button>
+            `;
+            mobileList.appendChild(li);
+
+
+            // --- Desktop Table Row ---
+            const tr = document.createElement("tr");
+            tr.innerHTML = `
+                <td>
+                    <div style="display:flex; align-items:center;">
+                        <div class="product-img" style="margin-right:8px;">
+                            ${p.image && p.image.startsWith("http") ? 
+                                `<img src="${p.image}" alt="${p.name || p.barcode}" onerror="this.style.display='none'; this.parentElement.innerHTML='<div class=\\'no-img\\'>📦</div>';" style="width:40px;height:40px;" />` :
+                                `<div class="no-img" style="width:40px;height:40px;font-size:16px;">📦</div>`
+                            }
+                        </div>
+                        <div>
+                            <strong>${p.name || "-"}</strong>
+                            <div class="table-subtext">${p.category || "-"}</div>
+                        </div>
+                    </div>
+                </td>
+                <td>${p.barcode}</td>
+                <td>
+                    <div>${p.category || "-"}</div>
+                    <div class="table-subtext">${p.vendor || ""}</div>
+                </td>
+                <td>
+                    <div>${p.asin || "-"}</div>
+                    <div class="table-subtext">${p.sku || "-"}</div>
+                </td>
+                <td>${p.cost || "-"}</td>
+                <td>
+                    <span class="stock-badge ${stockCls}">${p.currentStock}</span>
+                    ${p.restockLevel ? `<div class="table-subtext">Restock at ${p.restockLevel}</div>` : ''}
+                </td>
+                <td>${p.purchases || 0}</td>
+                <td>${p.sales || 0}</td>
+            `;
+            tbody.appendChild(tr);
+        });
+    }
+
+    // Event wiring
+    document.addEventListener("DOMContentLoaded", () => {
+        loadData();
+
+        // Combined event listener for all filtering/sorting elements
+        const updateEvents = ["input", "change"];
+        const controls = [
+            document.getElementById("searchInput"),
+            document.getElementById("categoryFilter"),
+            document.getElementById("vendorFilter"),
+            document.getElementById("sortMode")
+        ];
+        
+        controls.forEach(control => {
+            updateEvents.forEach(event => {
+                control.addEventListener(event, renderProducts);
+            });
+        });
+
+        // Pill group click handler
+        document.querySelectorAll(".pill").forEach(btn => {
+            btn.addEventListener("click", () => {
+                document.querySelectorAll(".pill").forEach(b => b.classList.remove("active"));
+                btn.classList.add("active");
+                state.viewMode = btn.dataset.view;
+                renderProducts();
+            });
+        });
     });
-    
-    [...vendorSet].sort().forEach(v => {
-      const opt = document.createElement("option");
-      opt.value = v;
-      opt.textContent = v;
-      vendorFilter.appendChild(opt);
-    });
-  }
-
-  function updateSummary() {
-    const totalSkus = state.productsList.length;
-    const categories = new Set(state.productsList.map(p => p.category).filter(Boolean));
-    const totalUnits = state.productsList.reduce((sum, p) => sum + (p.currentStock || 0), 0);
-    const lowStockCount = state.productsList.filter(p => 
-      p.currentStock > 0 && p.currentStock <= p.restockLevel
-    ).length;
-    const best = state.productsList.slice().sort((a, b) => (b.sales || 0) - (a.sales || 0))[0];
-
-    document.getElementById("statTotalSkus").textContent = totalSkus;
-    document.getElementById("statTotalCategories").textContent =
-      categories.size + " categories";
-
-    document.getElementById("statUnitsStock").textContent = totalUnits.toLocaleString();
-    document.getElementById("statLowStock").textContent =
-      lowStockCount + " low / below restock";
-
-    if (best && best.sales > 0) {
-      const name = best.name || best.barcode;
-      document.getElementById("statBestSeller").textContent = 
-        name.length > 30 ? name.substring(0, 30) + "..." : name;
-      document.getElementById("statBestSellerQty").textContent =
-        best.sales.toLocaleString() + " units sold";
-    } else {
-      document.getElementById("statBestSeller").textContent = "–";
-      document.getElementById("statBestSellerQty").textContent = "No sales yet";
-    }
-  }
-
-  function getFilteredProducts() {
-    const search = document.getElementById("searchInput").value.trim().toLowerCase();
-    const category = document.getElementById("categoryFilter").value;
-    const vendor = document.getElementById("vendorFilter").value;
-    const sortMode = document.getElementById("sortMode").value;
-
-    let list = state.productsList.slice();
-
-    if (state.viewMode === "low") {
-      list = list.filter(p => p.currentStock <= p.restockLevel && p.currentStock > 0);
-    } else if (state.viewMode === "zero") {
-      list = list.filter(p => p.currentStock <= 0);
-    } else if (state.viewMode === "best") {
-      list = list.filter(p => p.sales > 0);
-    }
-
-    if (category) {
-      list = list.filter(p => p.category === category);
-    }
-    if (vendor) {
-      list = list.filter(p => p.vendor === vendor);
-    }
-    if (search) {
-      list = list.filter(p => {
-        const s = [
-          p.name,
-          p.barcode,
-          p.category,
-          p.vendor,
-          p.asin,
-          p.sku
-        ].join(" ").toLowerCase();
-        return s.includes(search);
-      });
-    }
-
-    if (sortMode === "name") {
-      list.sort((a, b) => (a.name || a.barcode).localeCompare(b.name || b.barcode));
-    } else if (sortMode === "stockDesc") {
-      list.sort((a, b) => (b.currentStock || 0) - (a.currentStock || 0));
-    } else if (sortMode === "stockAsc") {
-      list.sort((a, b) => (a.currentStock || 0) - (b.currentStock || 0));
-    } else if (sortMode === "salesDesc") {
-      list.sort((a, b) => (b.sales || 0) - (a.sales || 0));
-    }
-
-    return list;
-  }
-
-  function renderTable() {
-    const tbody = document.getElementById("tableBody");
-    tbody.innerHTML = "";
-    const list = getFilteredProducts();
-
-    if (list.length === 0) {
-      const tr = document.createElement("tr");
-      tr.innerHTML = '<td colspan="9" style="text-align:center;padding:20px;color:#6b7280;">No products found.</td>';
-      tbody.appendChild(tr);
-      return;
-    }
-
-    list.forEach(p => {
-      const tr = document.createElement("tr");
-
-      // Image
-      const tdImg = document.createElement("td");
-      tdImg.className = "img-cell";
-      if (p.image && p.image.startsWith("http")) {
-        const img = document.createElement("img");
-        img.src = p.image;
-        img.alt = p.name || p.barcode;
-        img.onerror = function() {
-          this.style.display = 'none';
-          const noImg = document.createElement("div");
-          noImg.className = "no-img";
-          noImg.textContent = "📦";
-          this.parentElement.appendChild(noImg);
-        };
-        tdImg.appendChild(img);
-      } else {
-        const noImg = document.createElement("div");
-        noImg.className = "no-img";
-        noImg.textContent = "📦";
-        tdImg.appendChild(noImg);
-      }
-      tr.appendChild(tdImg);
-
-      // Product
-      const tdName = document.createElement("td");
-      tdName.innerHTML = `<div><strong>${p.name || "-"}</strong></div>
-        <div class="subtext">${p.category || ""}</div>`;
-      tr.appendChild(tdName);
-
-      // Barcode
-      const tdBarcode = document.createElement("td");
-      tdBarcode.textContent = p.barcode;
-      tr.appendChild(tdBarcode);
-
-      // Category/Vendor
-      const tdCatVendor = document.createElement("td");
-      tdCatVendor.innerHTML =
-        `<div>${p.category || "-"}</div><div class="subtext">${p.vendor || ""}</div>`;
-      tr.appendChild(tdCatVendor);
-
-      // ASIN/SKU
-      const tdAsinSku = document.createElement("td");
-      tdAsinSku.innerHTML =
-        `<div>${p.asin || "-"}</div><div class="subtext">${p.sku || ""}</div>`;
-      tr.appendChild(tdAsinSku);
-
-      // Cost
-      const tdCost = document.createElement("td");
-      tdCost.textContent = p.cost || "-";
-      tr.appendChild(tdCost);
-
-      // Stock
-      const tdStock = document.createElement("td");
-      const badge = document.createElement("span");
-      badge.className = "stock-badge";
-      let cls = "stock-ok";
-      if (p.currentStock <= 0) cls = "stock-zero";
-      else if (p.currentStock <= p.restockLevel) cls = "stock-low";
-      badge.classList.add(cls);
-      badge.textContent = p.currentStock;
-      tdStock.appendChild(badge);
-      if (p.restockLevel) {
-        const sub = document.createElement("div");
-        sub.className = "subtext";
-        sub.textContent = "Restock at " + p.restockLevel;
-        tdStock.appendChild(sub);
-      }
-      tr.appendChild(tdStock);
-
-      // Purchases
-      const tdPurch = document.createElement("td");
-      tdPurch.textContent = p.purchases || 0;
-      tr.appendChild(tdPurch);
-
-      // Sales
-      const tdSales = document.createElement("td");
-      tdSales.textContent = p.sales || 0;
-      tr.appendChild(tdSales);
-
-      tbody.appendChild(tr);
-    });
-  }
-
-  // Event wiring
-  document.addEventListener("DOMContentLoaded", () => {
-    loadData();
-
-    document.getElementById("searchInput").addEventListener("input", renderTable);
-    document.getElementById("categoryFilter").addEventListener("change", renderTable);
-    document.getElementById("vendorFilter").addEventListener("change", renderTable);
-    document.getElementById("sortMode").addEventListener("change", renderTable);
-
-    document.querySelectorAll(".pill").forEach(btn => {
-      btn.addEventListener("click", () => {
-        document.querySelectorAll(".pill").forEach(b => b.classList.remove("active"));
-        btn.classList.add("active");
-        state.viewMode = btn.dataset.view;
-        renderTable();
-      });
-    });
-  });
 </script>
 </body>
 </html>
