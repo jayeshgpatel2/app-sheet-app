@@ -307,27 +307,38 @@
     .mobile-product-card {
       background: white;
       border-radius: 12px;
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+      box-shadow: 0 3px 10px rgba(0, 0, 0, 0.12);
       overflow: hidden;
+      border: 2px solid var(--gray-200);
+    }
+
+    /* Alternating card colors for better distinction */
+    .mobile-product-card:nth-child(odd) {
+      border-left: 5px solid var(--primary);
+    }
+
+    .mobile-product-card:nth-child(even) {
+      border-left: 5px solid #8b5cf6; /* Purple for even cards */
     }
 
     .mobile-card-header {
       display: flex;
       gap: 1rem;
-      padding: 1rem;
+      padding: 0.875rem;
+      background: linear-gradient(135deg, var(--gray-50) 0%, var(--gray-100) 100%);
       border-bottom: 2px solid var(--gray-200);
-      background: var(--gray-50);
     }
 
     .mobile-image-container {
       flex-shrink: 0;
-      width: 100px;
-      height: 100px;
+      width: 80px;
+      height: 80px;
       border-radius: 8px;
       overflow: hidden;
       background: white;
-      border: 2px solid var(--gray-200);
+      border: 2px solid var(--gray-300);
       cursor: pointer;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
     }
 
     .mobile-image {
@@ -342,7 +353,7 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 2.5rem;
+      font-size: 2rem;
       color: var(--gray-600);
       background: var(--gray-100);
     }
@@ -350,48 +361,59 @@
     .mobile-card-info {
       flex: 1;
       min-width: 0;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
     }
 
     .mobile-product-name {
-      font-size: 1rem;
-      font-weight: 600;
+      font-size: 0.95rem;
+      font-weight: 700;
       margin-bottom: 0.25rem;
+      color: var(--gray-900);
+      line-height: 1.3;
     }
 
     .mobile-product-category {
-      font-size: 0.875rem;
+      font-size: 0.8rem;
       color: var(--gray-600);
       margin-bottom: 0.5rem;
     }
 
     .mobile-card-body {
-      padding: 1rem;
+      padding: 0.75rem;
+      background: white;
     }
 
     .mobile-details-grid {
       display: grid;
-      grid-template-columns: repeat(2, 1fr);
-      gap: 0.75rem;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 0.5rem;
     }
 
     .mobile-detail-item {
       display: flex;
       flex-direction: column;
+      background: var(--gray-50);
+      padding: 0.4rem 0.5rem;
+      border-radius: 6px;
+      border: 1px solid var(--gray-200);
     }
 
     .mobile-detail-label {
-      font-size: 0.75rem;
+      font-size: 0.65rem;
       color: var(--gray-600);
       text-transform: uppercase;
-      letter-spacing: 0.05em;
-      margin-bottom: 0.25rem;
+      letter-spacing: 0.03em;
+      margin-bottom: 0.15rem;
     }
 
     .mobile-detail-value {
-      font-size: 0.875rem;
-      font-weight: 500;
+      font-size: 0.75rem;
+      font-weight: 600;
       color: var(--gray-900);
       word-break: break-all;
+      line-height: 1.2;
     }
 
     /* === IMAGE MODAL === */
