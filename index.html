@@ -8,7 +8,7 @@
   <!-- React & Babel - Local files for Cloudflare caching -->
   <script src="js/react.min.js"></script>
   <script src="js/react-dom.min.js"></script>
-  <script crossorigin src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <script src="js/babel.min.js"></script>
   
   <style>
     * {
@@ -37,8 +37,6 @@
       color: var(--gray-900);
       line-height: 1.5;
     }
-
-
 
     /* === HEADER === */
     .header {
@@ -210,7 +208,7 @@
     .product-table {
       width: 100%;
       border-collapse: collapse;
-      display: none; /* Hidden on mobile */
+      display: none;
     }
 
     .product-table thead {
@@ -481,11 +479,11 @@
       }
 
       .mobile-products {
-        display: none; /* Hide mobile cards on desktop */
+        display: none;
       }
 
       .product-table {
-        display: table; /* Show table on desktop */
+        display: table;
       }
 
       .table-image {
@@ -501,11 +499,11 @@
 
     @media (max-width: 767px) {
       .product-table {
-        display: none; /* Hide table on mobile */
+        display: none;
       }
 
       .mobile-products {
-        display: grid; /* Show cards on mobile */
+        display: grid;
       }
     }
   </style>
@@ -663,15 +661,7 @@
         }
       }
 
-      if (loading) {
-        return (
-          <div className="loading-container">
-            <div className="spinner"></div>
-            <div style={{color: 'var(--gray-600)', fontSize: '0.875rem'}}>Loading products...</div>
-          </div>
-        );
-      }
-
+      // ✅ FIX: ALL useMemo hooks MUST come BEFORE any conditional returns
       const categories = useMemo(() => {
         const cats = new Set(products.map(p => p.category).filter(Boolean));
         return Array.from(cats).sort();
@@ -746,11 +736,21 @@
         };
       }, [products, categories]);
 
+      // ✅ FIX: NOW the conditional return comes AFTER all hooks
       if (loading) {
         return (
           <div className="loading-container">
             <div className="spinner"></div>
             <div style={{color: 'var(--gray-600)', fontSize: '0.875rem'}}>Loading products...</div>
+          </div>
+        );
+      }
+
+      if (error) {
+        return (
+          <div className="loading-container">
+            <div style={{color: 'var(--danger)', fontSize: '1rem'}}>Error: {error}</div>
+            <button onClick={loadData} style={{padding: '0.5rem 1rem', cursor: 'pointer'}}>Retry</button>
           </div>
         );
       }
@@ -763,7 +763,8 @@
             </div>
           </header>
 
-          <div className="container">{/* Stats */}
+          <div className="container">
+            {/* Stats */}
             <div className="stats-grid">
               <div className="stat-card">
                 <div className="stat-label">Total SKUs</div>
